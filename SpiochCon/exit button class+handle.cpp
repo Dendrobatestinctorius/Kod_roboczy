@@ -47,8 +47,8 @@ public:
 private:
     SDL_Point ePos;
     buttonsprite exitcurrentsprite;
-    const int bexitW = 300;
-    const int bexitH = 200; 
+    const int bexitW = 100;
+    const int bexitH = 50; 
     SDL_Rect bexitclip[BUTTON_SPRITE_TOTAL];
 };
 
@@ -194,12 +194,12 @@ bool bexit::handleEvent( SDL_Event* e )
                     break;
                 case SDL_MOUSEBUTTONUP:
                     exitcurrentsprite = BUTTON_SPRITE_MOUSE_UP;
-                    return false;
+                    return true;
                     break;
             }
         }
     }
-    return true;
+    return false;
 }
 
 void bexit::render()
