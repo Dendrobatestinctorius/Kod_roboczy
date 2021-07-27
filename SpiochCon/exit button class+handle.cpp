@@ -1,10 +1,10 @@
 #include <SDL2/SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string>
 
 
-enum bexitsprite
+enum buttonsprite
 {
     BUTTON_SPRITE_MOUSE_OUT = 0,
     BUTTON_SPRITE_MOUSE_OVER_MOTION = 1,
@@ -13,8 +13,8 @@ enum bexitsprite
     BUTTON_SPRITE_TOTAL = 4
 };
 
-const int SCREEN_W = 1280;
-const int SCREEN_H = 720;
+const int SCREEN_W = 1920;
+const int SCREEN_H = 1080;
 
 class DBtexture
 {
@@ -40,13 +40,13 @@ class bexit
 public:
     bexit();
     void setpos( int x, int y);
-    void handleEvent( SDL_Event* e);
+    bool handleEvent( SDL_Event* e);
     void loadexitb();
     void render();
 
 private:
     SDL_Point ePos;
-    bexitsprite exitcurrentsprite;
+    buttonsprite exitcurrentsprite;
     const int bexitW = 300;
     const int bexitH = 200; 
     SDL_Rect bexitclip[BUTTON_SPRITE_TOTAL];
@@ -77,7 +77,7 @@ bool DBtexture::LFF( std::string path)
     SDL_Texture* newTexture = NULL;
     SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
     if( loadedSurface == NULL )
-        printf( "Unabel to load image %s! SDL_image Error: %s\n", path.cstr(), IMG_GetError() );
+        printf( "Unabel to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
     else
     {
         SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0xff, 0xff) );
@@ -118,7 +118,7 @@ void DBtexture::setBlendMode( SDL_BlendMode blending )
 
 void DBtexture::setAplha( Uint8 alpha )
 {
-    SDL_SetTextureAlphaMode( mtexture, alpha );
+    SDL_SetTextureAlphaMod( mtexture, alpha );
 }
 
 void DBtexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip)
@@ -155,9 +155,9 @@ void bexit::setpos( int x, int y )
     ePos.y = y;
 }
 
-void bexit::handleEvent( SDL_Event* e )
+bool bexit::handleEvent( SDL_Event* e )
 {
-    if e->type == SDL_MOUSEMOTION || e->type ++ SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP )
+    if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP )
     {
         int x,y;
         SDL_GetMouseState( &x, &y );
@@ -194,20 +194,22 @@ void bexit::handleEvent( SDL_Event* e )
                     break;
                 case SDL_MOUSEBUTTONUP:
                     exitcurrentsprite = BUTTON_SPRITE_MOUSE_UP;
+                    return false;
                     break;
             }
         }
     }
+    return true;
 }
 
 void bexit::render()
 {
-    exitspritesheet.render( ePos.x, ePos.y, bexitclip[exitcurrentsprite], );
+    exitspritesheet.render( ePos.x, ePos.y, &bexitclip[exitcurrentsprite] );
 }
 
 void bexit::loadexitb()
 {
-    if(!exitspritesheet.LFF( "ebt.png" ) )
+    if(!exitspritesheet.LFF( "PNG/ebt.png" ) )
     {
         printf( "Failed to load exit button texture\n" );
     }
@@ -215,11 +217,11 @@ void bexit::loadexitb()
         for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
         {
             bexitclip[i].x = 0;
-            bexitclip[i].y = i * 100;
+            bexitclip[i].y = i * 50;
             bexitclip[i].w = bexitW;
             bexitclip[i].h = bexitH;
         }
-        btexit.setpos( 1200, 600 );
+        btexit.setpos( 1800, 1000 );
     }
 }
 
@@ -229,7 +231,7 @@ bool init()
     if( SDL_Init( SDL_INIT_VIDEO ) < 0)
     {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
-        succes = false;
+        success = false;
     }
     else{
         if (!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
@@ -237,15 +239,15 @@ bool init()
             printf( "Linear texture filtering not enabled" );
             success = false;
         }
-        SpiochWindow = SDL_CreateWindow( "Spioch Gra Fabularna", SDL_WIODOWPOS_UNDEEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W, SCREEN_H, SDL_WINDOW_SHOWN );
+        SpiochWindow = SDL_CreateWindow( "Spioch Gra Fabularna", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W, SCREEN_H, SDL_WINDOW_FULLSCREEN );
         if( SpiochWindow == NULL )
         {
-            printf( "Window could not be created! SDL Error: %S\n" SDL_GetError() );
+            printf( "Window could not be created! SDL Error: %S\n", SDL_GetError() );
             success = false;
         }
         else
         {
-            SpiochRenderer - SDL_CreateRenderer( SpiochRenderer, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+            SpiochRenderer = SDL_CreateRenderer( SpiochWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
             if(SpiochRenderer == NULL )
             {
                 printf( "Renderer could not be created! SDL Error %s\n", SDL_GetError() );
@@ -253,11 +255,11 @@ bool init()
             }
             else
             {
-                SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143);
+                SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255);
                 int imgFlags = IMG_INIT_PNG;
                 if(!(IMG_Init( imgFlags ) & imgFlags ) )
                 {
-                    printf( "SDL_image could not be initialize! Error: %s\n" IMG_GetError() );
+                    printf( "SDL_image could not be initialize! Error: %s\n", IMG_GetError() );
                     success = false;
                 }
             }
@@ -296,9 +298,9 @@ int main( int argc, char* argd[] )
                 {
                     quit = true;
                 }
-                btexit.handleEvent( &e );
+                quit = btexit.handleEvent( &e );
             }
-            SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143);
+            SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255);
             SDL_RenderClear( SpiochRenderer );
             btexit.render();
             SDL_RenderPresent( SpiochRenderer );
