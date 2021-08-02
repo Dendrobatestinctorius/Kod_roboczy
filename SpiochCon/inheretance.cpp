@@ -13,6 +13,8 @@ enum buttonsprite
     BUTTON_SPRITE_TOTAL = 4
 };
 
+const int SCREEN_W = 1920;
+const int SCREEN_H = 1080;
 
 class DBtexture
 {
@@ -39,12 +41,12 @@ public:
     bexit();
     void setpos( int x, int y);
     bool handleEvent( SDL_Event* e);
-    void loadexitb();
+    void loadexitb( std::string path );
     void render();
 
 private:
     SDL_Point ePos;
-    DBtexture exitspritesheet
+    DBtexture exitspritesheet;
     buttonsprite exitcurrentsprite;
     const int bexitW = 300;
     const int bexitH = 200; 
@@ -204,9 +206,9 @@ void bexit::render()
     exitspritesheet.render( ePos.x, ePos.y, &bexitclip[exitcurrentsprite] );
 }
 
-void bexit::loadexitb()
+void bexit::loadexitb( std::string path )
 {
-    if(!exitspritesheet.LFF( "PNG/ebt.png" ) )
+    if(!exitspritesheet.LFF( path ) )
     {
         printf( "Failed to load exit button texture\n" );
     }
@@ -280,7 +282,7 @@ bool choicebar::handleEvent( SDL_Event* e )
 
         if( !inside )
         {
-            chcurrsprite = BUTTON_SPRITE_MOUSE_OUT;
+            chcurrsheet = BUTTON_SPRITE_MOUSE_OUT;
         }
         else
         {
@@ -303,24 +305,80 @@ bool choicebar::handleEvent( SDL_Event* e )
 
 void choicebar::render()
 {
-    chspritesheet.render( ePos.x, ePos.y, &chbar[exitcurrentsprite] );
+    chspritesheet.render( ePos.x, ePos.y, &chbar[chcurrsheet] );
 }
 
 void choicebar::loadchcbr()
 {
-    if(!exitspritesheet.LFF( "PNG/chbar.png" ) )
+    if(!chspritesheet.LFF( "PNG/chbar.png" ) )
     {
         printf( "Failed to load exit button texture\n" );
     }
     else{
         for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
         {
-            bexitclip[i].x = 0;
-            bexitclip[i].y = i * 50;
-            bexitclip[i].w = bexitW;
-            bexitclip[i].h = bexitH;
+            chbar[i].x = 0;
+            chbar[i].y = i * 50;
+            chbar[i].w = chcW;
+            chbar[i].h = chcH;
         }
-        btexit.setpos( 1800, 1000 );
     }
 }
 
+void choicebar::chcend()
+{
+    chspritesheet.free();
+}
+
+bool init()
+{
+    bool success = true;
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0)
+    {
+        printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+        success = false;
+    }
+    else{
+        if (!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
+        {
+            printf( "Linear texture filtering not enabled" );
+            success = false;
+        }
+        SpiochWindow = SDL_CreateWindow( "Spioch Gra Fabularna", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W, SCREEN_H, SDL_WINDOW_FULLSCREEN );
+        if( SpiochWindow == NULL )
+        {
+            printf( "Window could not be created! SDL Error: %S\n", SDL_GetError() );
+            success = false;
+        }
+        else
+        {
+            SpiochRenderer = SDL_CreateRenderer( SpiochWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+            if(SpiochRenderer == NULL )
+            {
+                printf( "Renderer could not be created! SDL Error %s\n", SDL_GetError() );
+                success = false;
+            }
+            else
+            {
+                SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255);
+                int imgFlags = IMG_INIT_PNG;
+                if(!(IMG_Init( imgFlags ) & imgFlags ) )
+                {
+                    printf( "SDL_image could not be initialize! Error: %s\n", IMG_GetError() );
+                    success = false;
+                }
+            }
+        }        
+    }
+    return success;
+}
+
+void close()
+{
+    SDL_DestroyRenderer( SpiochRenderer );
+    SDL_DestroyWindow( SpiochWindow );
+    SpiochWindow = NULL;
+    SpiochRenderer = NULL;
+    IMG_Quit();
+    SDL_Quit();
+}
