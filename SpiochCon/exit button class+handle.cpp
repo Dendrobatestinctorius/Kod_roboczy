@@ -51,7 +51,14 @@ private:
     const int bexitH = 200; 
     SDL_Rect bexitclip[BUTTON_SPRITE_TOTAL];
 };
-
+ class bar
+ {
+public:
+    bar();
+    void setpos( int x, int y);
+    bool handleEvent()
+private:
+ };
 
 SDL_Window* SpiochWindow = NULL;
 SDL_Renderer* SpiochRenderer = NULL;
