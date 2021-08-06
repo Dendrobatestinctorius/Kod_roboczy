@@ -17,6 +17,7 @@ enum buttonsprite
 const int SCREEN_W = 1920;
 const int SCREEN_H = 1080;
 const SDL_Color tcolor = {0, 0, 0};
+const SDL_Color gcolor = {0, 255, 0};
 
 class DBtexture
 {
@@ -200,6 +201,7 @@ bexit::bexit()
     ePos.x = 0;
     ePos.y = 0;
     exitcurrentsprite = BUTTON_SPRITE_MOUSE_OUT;
+    loadexitb( "PNG/btt.png" );
 }
 
 void bexit::setpos( int x, int y )
@@ -306,6 +308,7 @@ choicebar::choicebar()
     ePos.x = 0;
     ePos.y = 0;
     chcurrsheet = BUTTON_SPRITE_MOUSE_OUT;
+    loadchcbr( "PNG/chcebar.png");
 }
 
 void choicebar::setpos(int x, int y)
@@ -453,9 +456,9 @@ void intro()
     intro.LFF( "PNG/intro.png" );
     int f = 0;
     int i = 0;
+    int w = 0;
     bool wprowadzenie = false;
     bexit btt;
-    btt.loadexitb( "PNG/btt.png");
     btt.setpos(910, 900);
     DBtexture text;
     text.setFont( 20 );
@@ -527,14 +530,7 @@ void scena1()
     bexit btexit;
     choicebar bar1, bar2, bar3;
     bool bar1p = false;
-    btexit.loadexitb( "PNG/ebt.png" );
-    btexit.setpos( 1800, 1000 );
-    bar1.loadchcbr( "PNG/Scena1/scn1_bar1.png" );
-    bar1.setpos( 50, 660 );
-    bar2.loadchcbr( "PNG/Scena1/scn1_bar2.png" );
-    bar2.setpos( 50, 780 );
-    bar3.loadchcbr( "PNG/Scena1/scn1_bar3.png" );
-    bar3.setpos( 50, 900 );
+    bool dajs = false;
     DBtexture text;
     text.setFont( 20 );
     SDL_Color rcolor = {255, 0, 0};
@@ -554,22 +550,40 @@ void scena1()
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255);
         SDL_RenderClear( SpiochRenderer );
+        btexit.setpos( 1800, 1000 );    
         btexit.render();
+        text.loadText("Zakończ", tcolor );
+        text.render( 1810, 1010);
         if( bar1p == false )
         {
+            bar1.setpos( 50, 660 );
             bar1.render();
-            text.loadText("Kolejny test", rcolor );
+            text.loadText("Daj mi spokój", tcolor );
+            text.render(70, 680 );
+
+        }
+        bar2.setpos( 50, 780 );
+        bar2.render();
+        bar3.setpos( 50, 900 );
+        bar3.render();
+        text.loadText( "Gyce", gcolor );
+        text.render( 50, 50);
+        text.loadText(" – Jeżeli dobrze zrozumiałem zostawiłeś coś w kapliczce i teraz chcesz to odzyskać?", tcolor);
+        text.render( 95, 50);
+        if( bar1p == true )
+        {
+            text.loadText("Bin", rcolor );
+            text.render( 50, 75 );
+            text.loadText(" - Daj mi spokój", tcolor);
+            text.render( 95, 75 );
+            text.loadText("Gyce zapatrzył się na chmurę, nie reagując na moją niegrzeczność. Nie odszedł jednak", tcolor );
             text.render(50, 100 );
         }
-        
-        bar2.render();
-        bar3.render();
-        text.loadText("Pierwsze wyjscie z lasu", tcolor);
-        text.render( 50, 50);
         SDL_RenderPresent( SpiochRenderer );
     }
     bar1.chcend();
     bar2.chcend();
+    bar3.setpos( 50, 900 );
     bar3.chcend();
     btexit.endext();
     text.fontend();
