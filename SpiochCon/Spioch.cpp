@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <string>
 
@@ -15,13 +16,17 @@ enum buttonsprite
 
 const int SCREEN_W = 1920;
 const int SCREEN_H = 1080;
+const SDL_Color tcolor = {0, 0, 0};
 
 class DBtexture
 {
 public:
     DBtexture();
     ~DBtexture();
+    void setFont(int size);
+    void fontend();
     bool LFF( std::string path);
+    bool loadText( std::string textureText, SDL_Color textColor );
     void free();
     void setColor( Uint8 red, Uint8 green, Uint8 blue);
     void setBlendMode( SDL_BlendMode blending );
@@ -30,6 +35,7 @@ public:
     int getWidth();
     int getHeight();
 private:
+    TTF_Font* DBfont;
     SDL_Texture* mtexture;
     int mWidth;
     int mHeight;
@@ -94,6 +100,53 @@ bool DBtexture::LFF( std::string path)
     mtexture = newTexture;
     return mtexture != NULL;
 }
+
+void DBtexture::setFont(int size)
+{
+    DBfont = TTF_OpenFont( "Font/ComicSansMS3.ttf", size );
+}
+
+void DBtexture::fontend()
+{
+    TTF_CloseFont( DBfont );
+    DBfont = NULL;
+}
+
+bool DBtexture::loadText( std::string textureText, SDL_Color textColor )
+{
+	//Get rid of preexisting texture
+	free();
+
+	//Render text surface
+	SDL_Surface* textSurface = TTF_RenderUTF8_Solid( DBfont, textureText.c_str() , textColor );
+	if( textSurface == NULL )
+	{
+		printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
+	}
+	else
+	{
+		//Create texture from surface pixels
+        mtexture = SDL_CreateTextureFromSurface( SpiochRenderer, textSurface );
+		if( mtexture == NULL )
+		{
+			printf( "Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
+		}
+		else
+		{
+			//Get image dimensions
+			mWidth = textSurface->w;
+			mHeight = textSurface->h;
+		}
+
+		//Get rid of old surface
+		SDL_FreeSurface( textSurface );
+	}
+	
+	//Return success
+	return mtexture != NULL;
+}
+
+
 
 void DBtexture::free()
 {
@@ -372,6 +425,11 @@ bool init()
                     printf( "SDL_image could not be initialize! Error: %s\n", IMG_GetError() );
                     success = false;
                 }
+                if( TTF_Init() == -1 )
+                {
+                    printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
+                    success = false;
+                }
             }
         }        
     }
@@ -384,6 +442,7 @@ void close()
     SDL_DestroyWindow( SpiochWindow );
     SpiochWindow = NULL;
     SpiochRenderer = NULL;
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }
@@ -393,6 +452,14 @@ void intro()
     DBtexture intro;
     intro.LFF( "PNG/intro.png" );
     int f = 0;
+    int i = 0;
+    bool wprowadzenie = false;
+    bexit btt;
+    btt.loadexitb( "PNG/btt.png");
+    btt.setpos(910, 900);
+    DBtexture text;
+    text.setFont( 20 );
+    SDL_Event e;
     while ( f < 150 )
     {
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255 );
@@ -401,7 +468,58 @@ void intro()
         SDL_RenderPresent( SpiochRenderer );
         ++f;
     }
+    while( wprowadzenie == false )
+    {
+        while( SDL_PollEvent( &e ) != 0 )
+        {
+            if( i >= 150 )
+            {
+                wprowadzenie = btt.handleEvent( &e );
+            }
+        }
+        SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
+        SDL_RenderClear( SpiochRenderer );
+        text.loadText( "Wielki precel z pary wodnej wyglądał niezwykle majestatycznie gdy w świetle księżyca", tcolor);
+        text.render(100, 20);
+        text.loadText( "obserwowało się jak otacza całą Oktawie.  Zarazem bronił przed światem zewnętrznym jak i nie", tcolor );
+        text.render(100, 45);
+        text.loadText( "pozwalał się wydostać. Wiedziałem już, że i tak nie było po co się wydostawać. Chyba, że ktoś", tcolor );
+        text.render(100, 70);
+        text.loadText( "lubił patrzeć na niekończącą się powierzchnię stwardniałego waniliowego budyniu ze szczyptą", tcolor );
+        text.render(100, 95);
+        text.loadText( "cynamonu. Słońce właśnie wyłaniało się z zza wiecznej chmury oświetlając kolejno każdy z", tcolor );
+        text.render(100, 120);
+        text.loadText( "ośmiu pierścieni", tcolor);
+        text.render(100, 145);
+        if( i >= 90 )
+        {
+            text.loadText( "Mój świat jest daleko. Czy może raczej dawno? Wyruszam dzisiaj po to by nie przepadły", tcolor );
+            text.render(100, 200);
+            text.loadText( "resztki tego co mnie z nim wiążą. Tak naprawdę nie wierzyłem w to, że cokolwiek zostało z tego", tcolor );
+            text.render(100, 225);
+            text.loadText( "co ukryłem w skryte wbudowanej w podstawę mojej trumny. Jednakże musiałem spróbować", tcolor );
+            text.render(100, 250);
+            text.loadText( "Dla siebie, by nie oszaleć od obcości Oktawii.", tcolor );
+            text.render(100, 275);
+        }
+        if( i >= 180)
+        {
+            text.loadText( "Te ponure rozmyślania przerwał mi Gyce.", tcolor );
+            text.render(100, 350);
+        }
+        if( i >= 220 )
+        {
+            btt.render();
+            text.loadText("Dalej", tcolor);
+            text.render( 940, 910 );
+        }
+        SDL_RenderPresent( SpiochRenderer );
+        ++i;
+    }
     intro.free();
+    text.free();
+    text.fontend();
+    btt.endext();
 }
 
 void scena1()
@@ -417,6 +535,9 @@ void scena1()
     bar2.setpos( 50, 780 );
     bar3.loadchcbr( "PNG/Scena1/scn1_bar3.png" );
     bar3.setpos( 50, 900 );
+    DBtexture text;
+    text.setFont( 20 );
+    SDL_Color rcolor = {255, 0, 0};
     bool quit = false;
     SDL_Event e;
     while( !quit )
@@ -437,16 +558,21 @@ void scena1()
         if( bar1p == false )
         {
             bar1.render();
+            text.loadText("Kolejny test", rcolor );
+            text.render(50, 100 );
         }
         
         bar2.render();
         bar3.render();
+        text.loadText("Pierwsze wyjscie z lasu", tcolor);
+        text.render( 50, 50);
         SDL_RenderPresent( SpiochRenderer );
     }
     bar1.chcend();
     bar2.chcend();
     bar3.chcend();
     btexit.endext();
+    text.fontend();
 }
 
 int main( int argc, char* argd[] )
