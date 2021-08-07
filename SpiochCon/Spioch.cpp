@@ -35,6 +35,7 @@ public:
     void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
     int getWidth();
     int getHeight();
+    void fintxt( std::string textureText, SDL_Color textColor, int x, int y, Uint8 alpha);
 private:
     TTF_Font* DBfont;
     SDL_Texture* mtexture;
@@ -194,6 +195,14 @@ int DBtexture::getWidth()
 int DBtexture::getHeight()
 {
     return mHeight;
+}
+
+void DBtexture::fintxt( std::string textureText, SDL_Color textColor, int x, int y, Uint8 alpha)
+{
+    loadText( textureText, tcolor );
+    setBlendMode( SDL_BLENDMODE_BLEND );
+    setAplha( alpha );
+    render(x, y);
 }
 
 bexit::bexit()
@@ -463,14 +472,15 @@ void intro()
     DBtexture text;
     text.setFont( 20 );
     SDL_Event e;
-    while ( f < 150 )
+    while ( i <= 150 )
     {
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
         intro.render( 0, 0 );
         SDL_RenderPresent( SpiochRenderer );
-        ++f;
+        ++i;
     }
+    i = 0;
     while( wprowadzenie == false )
     {
         while( SDL_PollEvent( &e ) != 0 )
@@ -494,23 +504,26 @@ void intro()
         text.render(100, 120);
         text.loadText( "ośmiu pierścieni", tcolor);
         text.render(100, 145);
-        if( i >= 90 )
+        if( i >= 50 )
         {
-            text.loadText( "Mój świat jest daleko. Czy może raczej dawno? Wyruszam dzisiaj po to by nie przepadły", tcolor );
-            text.render(100, 200);
-            text.loadText( "resztki tego co mnie z nim wiążą. Tak naprawdę nie wierzyłem w to, że cokolwiek zostało z tego", tcolor );
-            text.render(100, 225);
-            text.loadText( "co ukryłem w skryte wbudowanej w podstawę mojej trumny. Jednakże musiałem spróbować", tcolor );
-            text.render(100, 250);
-            text.loadText( "Dla siebie, by nie oszaleć od obcości Oktawii.", tcolor );
-            text.render(100, 275);
+            text.fintxt( "Mój świat jest daleko. Czy może raczej dawno? Wyruszam dzisiaj po to by nie przepadły", tcolor, 100, 200, f );
+            text.fintxt( "resztki tego co mnie z nim wiążą. Tak naprawdę nie wierzyłem w to, że cokolwiek zostało z tego", tcolor, 100, 225, f );
+            text.fintxt( "co ukryłem w skryte wbudowanej w podstawę mojej trumny. Jednakże musiałem spróbować", tcolor, 100, 250, f);
+            text.fintxt( "Dla siebie, by nie oszaleć od obcości Oktawii.", tcolor, 100, 275, f );
+            if( f < 255 )
+            {
+                f += 3;
+            }
         }
         if( i >= 180)
         {
-            text.loadText( "Te ponure rozmyślania przerwał mi Gyce.", tcolor );
-            text.render(100, 350);
+            text.fintxt( "Te ponure rozmyślania przerwał mi Gyce.", tcolor, 100, 350, w );
+            if( w < 255 )
+            {
+                w++;
+            }
         }
-        if( i >= 220 )
+        if( i >= 400 )
         {
             btt.render();
             text.loadText("Dalej", tcolor);
