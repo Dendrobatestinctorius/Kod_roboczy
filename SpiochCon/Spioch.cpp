@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <string>
 
@@ -60,6 +61,19 @@ private:
     const int bexitW = 100;
     const int bexitH = 50; 
     SDL_Rect bexitclip[BUTTON_SPRITE_TOTAL];
+};
+
+class sound
+{
+private:
+    Mix_Music* mmusic;
+public:
+    sound();
+    void loadmusic( std::string path );
+    void playsnd();
+    void stopsnd();
+    void endsnd();
+
 };
 
 SDL_Window* SpiochWindow = NULL;
@@ -403,7 +417,7 @@ void choicebar::chcend()
 bool init()
 {
     bool success = true;
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0)
+    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0)
     {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         success = false;
@@ -442,10 +456,48 @@ bool init()
                     printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
                     success = false;
                 }
+                if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+                {
+                    printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+                    success = false;
+                }
             }
         }        
     }
     return success;
+}
+
+sound::sound()
+{
+    mmusic = NULL;
+}
+
+void sound::loadmusic( std::string path )
+{
+    mmusic = Mix_LoadMUS( path.c_str() );
+    if( mmusic == NULL )
+    {
+        printf( "Failed to load sound! SDL_mixer Error: %s\n", Mix_GetError);
+    }
+}
+
+void sound::playsnd()
+{
+    if( Mix_PlayingMusic() == 0 )
+    {
+        Mix_PlayMusic( mmusic, -1 );
+    }
+}
+
+void sound::stopsnd()
+{
+    Mix_HaltMusic();
+}
+
+void sound::endsnd()
+{
+    Mix_FreeMusic( mmusic );
+    mmusic = NULL;
 }
 
 void close()
@@ -463,15 +515,7 @@ void intro()
 {
     DBtexture intro;
     intro.LFF( "PNG/intro.png" );
-    int f = 0;
     int i = 0;
-    int w = 0;
-    bool wprowadzenie = false;
-    bexit btt;
-    btt.setpos(910, 900);
-    DBtexture text;
-    text.setFont( 20 );
-    SDL_Event e;
     while ( i <= 150 )
     {
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255 );
@@ -480,7 +524,30 @@ void intro()
         SDL_RenderPresent( SpiochRenderer );
         ++i;
     }
-    i = 0;
+
+    intro.free();
+
+}
+
+void scena1()
+{
+    choicebar bar1, bar2, bar3;
+    sound tlo;
+    bool bar1p = false;
+    bool dajs = false;
+    bool wprowadzenie = false;
+    int f = 0;
+    int i = 0;
+    int w = 0;
+    bexit btt;
+    btt.setpos(910, 900);
+    DBtexture text;
+    text.setFont( 20 );
+    tlo.loadmusic( "Sound/music.mp3" );
+    SDL_Color rcolor = {255, 0, 0};
+    bool quit = false;
+    SDL_Event e;
+    tlo.playsnd();
     while( wprowadzenie == false )
     {
         while( SDL_PollEvent( &e ) != 0 )
@@ -532,28 +599,11 @@ void intro()
         SDL_RenderPresent( SpiochRenderer );
         ++i;
     }
-    intro.free();
-    text.free();
-    text.fontend();
-    btt.endext();
-}
-
-void scena1()
-{
-    bexit btexit;
-    choicebar bar1, bar2, bar3;
-    bool bar1p = false;
-    bool dajs = false;
-    DBtexture text;
-    text.setFont( 20 );
-    SDL_Color rcolor = {255, 0, 0};
-    bool quit = false;
-    SDL_Event e;
     while( !quit )
     {
         while( SDL_PollEvent( &e ) != 0 )
         {
-            quit = btexit.handleEvent( &e );
+            quit = btt.handleEvent( &e );
             if( bar1p == false )
             {
                 bar1p = bar1.handleEvent( &e );
@@ -563,8 +613,8 @@ void scena1()
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255);
         SDL_RenderClear( SpiochRenderer );
-        btexit.setpos( 1800, 1000 );    
-        btexit.render();
+        btt.setpos( 1800, 1000 );    
+        btt.render();
         text.loadText("Zakończ", tcolor );
         text.render( 1810, 1010);
         if( bar1p == false )
@@ -596,10 +646,10 @@ void scena1()
     }
     bar1.chcend();
     bar2.chcend();
-    bar3.setpos( 50, 900 );
     bar3.chcend();
-    btexit.endext();
     text.fontend();
+    tlo.stopsnd();
+    tlo.endsnd();
 }
 
 int main( int argc, char* argd[] )
