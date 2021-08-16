@@ -19,10 +19,14 @@ const int SCREEN_W = 1920;
 const int SCREEN_H = 1080;
 const SDL_Color tcolor = {0, 0, 0};
 const SDL_Color gcolor = {0, 255, 0};
+const SDL_Color rcolor = {255, 0, 0};
+const SDL_Color wcolor = {255, 255, 255};
 
 class DBtexture
 {
 public:
+    int mWidth;
+    int mHeight;
     DBtexture();
     ~DBtexture();
     void setFont(int size);
@@ -34,32 +38,29 @@ public:
     void setBlendMode( SDL_BlendMode blending );
     void setAplha( Uint8 alpha );
     void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
-    int getWidth();
-    int getHeight();
     void fintxt( std::string textureText, SDL_Color textColor, int x, int y, Uint8 alpha);
 private:
+    int getWidth();
+    int getHeight();
     TTF_Font* DBfont;
     SDL_Texture* mtexture;
-    int mWidth;
-    int mHeight;
+
 };
 
-class bexit
+class btt
 {
 public:
-    bexit();
+    btt();
     void setpos( int x, int y);
     bool handleEvent( SDL_Event* e);
-    void loadexitb( std::string path );
-    void render();
-    void endext();
+    void loadbtt( std::string path );
+    void renderbtt(Uint8 alpha);
+    void endbtt();
 
 private:
     SDL_Point ePos;
     DBtexture exitspritesheet;
     buttonsprite exitcurrentsprite;
-    const int bexitW = 100;
-    const int bexitH = 50; 
     SDL_Rect bexitclip[BUTTON_SPRITE_TOTAL];
 };
 
@@ -219,21 +220,20 @@ void DBtexture::fintxt( std::string textureText, SDL_Color textColor, int x, int
     render(x, y);
 }
 
-bexit::bexit()
+btt::btt()
 {
     ePos.x = 0;
     ePos.y = 0;
     exitcurrentsprite = BUTTON_SPRITE_MOUSE_OUT;
-    loadexitb( "PNG/btt.png" );
 }
 
-void bexit::setpos( int x, int y )
+void btt::setpos( int x, int y )
 {
     ePos.x = x;
     ePos.y = y;
 }
 
-bool bexit::handleEvent( SDL_Event* e )
+bool btt::handleEvent( SDL_Event* e )
 {
     if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP )
     {
@@ -244,7 +244,7 @@ bool bexit::handleEvent( SDL_Event* e )
         {
             inside = false;
         }
-        else if( x > ePos.x + bexitW )
+        else if( x > ePos.x + exitspritesheet.mWidth )
         {
             inside = false;
         }
@@ -252,7 +252,7 @@ bool bexit::handleEvent( SDL_Event* e )
         {
             inside = false;
         }
-        else if( y > ePos.y + bexitH )
+        else if( y > ePos.y + (exitspritesheet.mHeight/4) )
         {
             inside = false;
         }
@@ -280,12 +280,14 @@ bool bexit::handleEvent( SDL_Event* e )
     return false;
 }
 
-void bexit::render()
+void btt::renderbtt( Uint8 alpha )
 {
+    exitspritesheet.setBlendMode( SDL_BLENDMODE_BLEND );
+    exitspritesheet.setAplha( alpha );
     exitspritesheet.render( ePos.x, ePos.y, &bexitclip[exitcurrentsprite] );
 }
 
-void bexit::loadexitb( std::string path )
+void btt::loadbtt( std::string path )
 {
     if(!exitspritesheet.LFF( path ) )
     {
@@ -295,123 +297,16 @@ void bexit::loadexitb( std::string path )
         for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
         {
             bexitclip[i].x = 0;
-            bexitclip[i].y = i * 50;
-            bexitclip[i].w = bexitW;
-            bexitclip[i].h = bexitH;
+            bexitclip[i].y = i * (exitspritesheet.mHeight/4);
+            bexitclip[i].w = exitspritesheet.mWidth;
+            bexitclip[i].h = exitspritesheet.mHeight/4;
         }
     }
 }
 
-void bexit::endext()
+void btt::endbtt()
 {
     exitspritesheet.free();
-}
-
-class choicebar
-{
-public:
-    choicebar();
-    void setpos( int x, int y);
-    bool handleEvent( SDL_Event* e);
-    void loadchcbr( std::string path );
-    void render();
-    void chcend();
-
-private:
-    SDL_Point ePos;
-    DBtexture chspritesheet;
-    buttonsprite chcurrsheet;
-    const int chcW = 800;
-    const int chcH = 100; 
-    SDL_Rect chbar[BUTTON_SPRITE_TOTAL];
-};
-
-choicebar::choicebar()
-{
-    ePos.x = 0;
-    ePos.y = 0;
-    chcurrsheet = BUTTON_SPRITE_MOUSE_OUT;
-    loadchcbr( "PNG/chcebar.png");
-}
-
-void choicebar::setpos(int x, int y)
-{
-    ePos.x = x;
-    ePos.y = y;
-}
-
-bool choicebar::handleEvent( SDL_Event* e )
-{
-    if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP )
-    {
-        int x,y;
-        SDL_GetMouseState( &x, &y );
-        bool inside = true;
-        if( x < ePos.x )
-        {
-            inside = false;
-        }
-        else if( x > ePos.x + chcW )
-        {
-            inside = false;
-        }
-        else if( y < ePos.y )
-        {
-            inside = false;
-        }
-        else if( y > ePos.y + chcH )
-        {
-            inside = false;
-        }
-
-        if( !inside )
-        {
-            chcurrsheet = BUTTON_SPRITE_MOUSE_OUT;
-        }
-        else
-        {
-            switch( e->type ){
-                case SDL_MOUSEMOTION:
-                    chcurrsheet = BUTTON_SPRITE_MOUSE_OVER_MOTION;
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    chcurrsheet = BUTTON_SPRITE_MOUSE_DOWN;
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    chcurrsheet = BUTTON_SPRITE_MOUSE_UP;
-                    return true;
-                    break;
-            }
-        }
-    }
-    return false;
-}
-
-void choicebar::render()
-{
-    chspritesheet.render( ePos.x, ePos.y, &chbar[chcurrsheet] );
-}
-
-void choicebar::loadchcbr( std::string path )
-{
-    if(!chspritesheet.LFF( path ) )
-    {
-        printf( "Failed to load exit button texture\n" );
-    }
-    else{
-        for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
-        {
-            chbar[i].x = 0;
-            chbar[i].y = i * 100;
-            chbar[i].w = chcW;
-            chbar[i].h = chcH;
-        }
-    }
-}
-
-void choicebar::chcend()
-{
-    chspritesheet.free();
 }
 
 bool init()
@@ -529,32 +424,86 @@ void intro()
 
 }
 
-void scena1()
+void title()
 {
-    choicebar bar1, bar2, bar3;
-    sound tlo;
+    btt btt1;
+    DBtexture door;
+    btt1.loadbtt("PNG/Candle_btt.png");
+    door.LFF("PNG/door.png");
+    SDL_Rect doorclip[2];
+    for(int d = 0; d < 2; ++d)
+    {
+            doorclip[d].x = d * (door.mWidth/2);
+            doorclip[d].y = 0;
+            doorclip[d].w = door.mWidth/2;
+            doorclip[d].h = door.mHeight;
+    }
+    bool quit = false;
+    SDL_Event e;
+    int i = 0;
+    int a = 255;
+    while(i < 960 )
+    {
+        while( SDL_PollEvent( &e ) != 0 )
+        {
+            if(quit == false || a==255 )
+            {
+                quit = btt1.handleEvent( &e );
+            }
+        }
+        if(quit == true)
+        {
+            if( a > 0 )
+            {
+                a -= 5;
+            }
+            if( a == 0)
+            {
+                i += 5;
+            }
+            
+        }
+        SDL_SetRenderDrawColor( SpiochRenderer, 0, 0, 0, 255 );
+        SDL_RenderClear( SpiochRenderer );
+        door.render( 0 - i, 0, &doorclip[0] );
+        door.render( (door.mWidth/2) + i, 0, &doorclip[1] );
+        btt1.setpos(909, 489);
+        btt1.renderbtt(a);
+        SDL_RenderPresent( SpiochRenderer );
+    }
+    
+}
+
+bool scena1()
+{
+    
     bool bar1p = false;
     bool dajs = false;
     bool wprowadzenie = false;
     int f = 0;
     int i = 0;
     int w = 0;
-    bexit btt;
-    btt.setpos(910, 900);
+    Uint8 a = 0;
+    btt btt1, btt2, btt3, btt4;
+    btt1.loadbtt("PNG/btt.png");
+    btt2.loadbtt("PNG/chcebar.png");
+    btt3.loadbtt("PNG/chcebar.png");
+    btt4.loadbtt("PNG/chcebar.png");
+    
     DBtexture text;
     text.setFont( 20 );
-    tlo.loadmusic( "Sound/music.mp3" );
-    SDL_Color rcolor = {255, 0, 0};
+    
+    
     bool quit = false;
     SDL_Event e;
-    tlo.playsnd();
+    
     while( wprowadzenie == false )
     {
         while( SDL_PollEvent( &e ) != 0 )
         {
             if( i >= 150 )
             {
-                wprowadzenie = btt.handleEvent( &e );
+                wprowadzenie = btt1.handleEvent( &e );
             }
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
@@ -592,9 +541,13 @@ void scena1()
         }
         if( i >= 400 )
         {
-            btt.render();
-            text.loadText("Dalej", tcolor);
-            text.render( 940, 910 );
+            btt1.setpos(910, 900);
+            btt1.renderbtt(a);
+            text.fintxt(" Dalej", tcolor, 920, 905, a);
+            if(a < 255 )
+            {
+                a += 17;
+            }
         }
         SDL_RenderPresent( SpiochRenderer );
         ++i;
@@ -603,32 +556,29 @@ void scena1()
     {
         while( SDL_PollEvent( &e ) != 0 )
         {
-            quit = btt.handleEvent( &e );
+            quit = btt1.handleEvent( &e );
             if( bar1p == false )
             {
-                bar1p = bar1.handleEvent( &e );
+                bar1p = btt2.handleEvent( &e );
             }
-            bar2.handleEvent( &e );
-            bar3.handleEvent( &e );
+            btt3.handleEvent( &e );
+            btt4.handleEvent( &e );
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255);
         SDL_RenderClear( SpiochRenderer );
-        btt.setpos( 1800, 1000 );    
-        btt.render();
-        text.loadText("Zakończ", tcolor );
-        text.render( 1810, 1010);
+        btt1.setpos( 1800, 1000 );    
+        btt1.renderbtt(255);
+        text.fintxt("Zakończ", tcolor, 1810, 1010, 255 );
         if( bar1p == false )
         {
-            bar1.setpos( 50, 660 );
-            bar1.render();
-            text.loadText("Daj mi spokój", tcolor );
-            text.render(70, 680 );
-
+            btt2.setpos( 50, 660 );
+            btt2.renderbtt(255);
+            text.fintxt("Daj mi spokój", tcolor, 70, 680, 255 );
         }
-        bar2.setpos( 50, 780 );
-        bar2.render();
-        bar3.setpos( 50, 900 );
-        bar3.render();
+        btt3.setpos( 50, 780 );
+        btt3.renderbtt(255);
+        btt4.setpos( 50, 900 );
+        btt4.renderbtt(255);
         text.loadText( "Gyce", gcolor );
         text.render( 50, 50);
         text.loadText(" – Jeżeli dobrze zrozumiałem zostawiłeś coś w kapliczce i teraz chcesz to odzyskać?", tcolor);
@@ -644,25 +594,36 @@ void scena1()
         }
         SDL_RenderPresent( SpiochRenderer );
     }
-    bar1.chcend();
-    bar2.chcend();
-    bar3.chcend();
+    btt1.endbtt();
+    btt2.endbtt();
+    btt3.endbtt();
+    btt4.endbtt();
     text.fontend();
-    tlo.stopsnd();
-    tlo.endsnd();
+
+    return true;
 }
 
 int main( int argc, char* argd[] )
 {
+    bool end = false;
     if( !init() )
     {
         printf( "Failed to initialize " );
     }
     else
     {
-        intro();
-        scena1();
-    }
+        sound tlo;
+        tlo.loadmusic( "Sound/music.mp3" );
+        while (!end)
+        {
+            intro();
+            tlo.playsnd();
+            title();
+            end = scena1();
+        }
+        tlo.stopsnd();
+        tlo.endsnd();
+    } 
     close();
     return 0;
 }
