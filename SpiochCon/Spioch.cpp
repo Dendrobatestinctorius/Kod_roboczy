@@ -471,6 +471,8 @@ void title()
         btt1.renderbtt(a);
         SDL_RenderPresent( SpiochRenderer );
     }
+    door.free();
+    btt1.endbtt();
     
 }
 
