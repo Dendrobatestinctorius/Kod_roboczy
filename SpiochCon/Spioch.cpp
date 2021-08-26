@@ -26,7 +26,7 @@ class Window
 private:
     
     SDL_Window* SpiochWindow;
-    bool fscrn;
+    
 
 public:
     Window();
@@ -37,6 +37,7 @@ public:
     void free();
     int SCREEN_W = 0;
     int SCREEN_H = 0;
+    bool fscrn;
 };
 
 class DBtexture
@@ -562,10 +563,11 @@ bool menu()
 {
     bool quit = false;
     bool opc = false;
-    btt btt1, btt2;
+    btt btt1, btt2, btt3;
     DBtexture text;
     btt1.loadbtt("PNG/btt.png");
     btt2.loadbtt("PNG/NG.png");
+    btt3.loadbtt("PNG/OP.png");
     text.setFont( 20 );
     SDL_Event e;
     while( !quit )
@@ -579,8 +581,9 @@ bool menu()
             }
             if(!opc)
             {
-                opc = btt2.handleEvent( &e );
+                opc = btt3.handleEvent( &e );
             }
+            btt2.handleEvent( &e );
 
         }
         if( opc )
@@ -591,8 +594,11 @@ bool menu()
         SDL_RenderClear( SpiochRenderer );
         btt2.setpos(50, SpiochW.SCREEN_H/4);
         btt2.renderbtt(255);
+        btt3.setpos( 50, SpiochW.SCREEN_H/4 + 80);
+        btt3.renderbtt( 255 );
         btt1.setpos( SpiochW.SCREEN_W/2 - 50, SpiochW.SCREEN_H - 100);
         btt1.renderbtt(255);
+        text.fintxt( "Zakończ", tcolor, SpiochW.SCREEN_W/2 - 40, SpiochW.SCREEN_H - 90, 255 );
         SDL_RenderPresent( SpiochRenderer );
     }
     btt1.endbtt();
@@ -604,11 +610,13 @@ bool menu()
 bool opcje()
 {
     bool quit = false;
-    bool resfhd = false;
-    btt btt1, btt2;
+    bool okno = false;
+    bool fscr = false;
+    btt btt1, btt2, btt3;
     DBtexture text;
     btt1.loadbtt("PNG/btt.png");
     btt2.loadbtt("PNG/btt.png");
+    btt3.loadbtt("PNG/btt.png");
     text.setFont( 20 );
     SDL_Event e;
     while( !quit )
@@ -619,27 +627,43 @@ bool opcje()
             {
                 quit = btt1.handleEvent( &e );
             }
-            if(!resfhd)
+            if(SpiochW.fscrn)
             {
-                resfhd = btt2.handleEvent( &e );
-                if(resfhd)
+                okno = btt2.handleEvent( &e );
+                if(okno)
                 {
                     SpiochW.setfullscrn( false );
+                    fscr = false;
                 }
             }
-
+            else
+            {
+                fscr = btt3.handleEvent( &e );
+                if(fscr)
+                {
+                    SpiochW.setfullscrn( true );
+                    okno = false;
+                }
+            }
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
-        btt2.setpos(50, SpiochW.SCREEN_H/4);
-        btt2.renderbtt(255);
-        if(!resfhd)
+        
+        if(SpiochW.fscrn)
         {
+            btt2.setpos(50, SpiochW.SCREEN_H/4);
+            btt2.renderbtt(255);
             text.fintxt("okno", tcolor, 55, SpiochW.SCREEN_H/4 + 10, 255);
+        }
+        else
+        {
+            btt3.setpos(50, SpiochW.SCREEN_H/4);
+            btt3.renderbtt(255);
+            text.fintxt("Pełny Ekran", tcolor, 55, SpiochW.SCREEN_H/4 + 10, 255);
         }
         btt1.setpos( SpiochW.SCREEN_W/2 - 50, SpiochW.SCREEN_H - 100);
         btt1.renderbtt(255);
-        text.fintxt( "Zakończ", tcolor, SpiochW.SCREEN_W/2 - 40, SpiochW.SCREEN_H - 90, 255 );
+        text.fintxt( "Wróć", tcolor, SpiochW.SCREEN_W/2 - 40, SpiochW.SCREEN_H - 90, 255 );
         SDL_RenderPresent( SpiochRenderer );
     }
     btt1.endbtt();
@@ -790,8 +814,8 @@ int main( int argc, char* argd[] )
     }
     else
     {
-       // sound tlo;
-    // tlo.loadmusic( "Sound/music.mp3" );
+        //sound tlo;
+        //tlo.loadmusic( "Sound/music.mp3" );
         intro();
         while (!end)
         {
