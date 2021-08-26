@@ -38,6 +38,7 @@ public:
     int SCREEN_W = 0;
     int SCREEN_H = 0;
     bool fscrn;
+    bool resfhd = false;
 };
 
 class DBtexture
@@ -134,7 +135,11 @@ void Window::setresolution( int scrnW, int scrnH )
     }
     else
     {
-       // SDL_SetWindowDisplayMode( SpiochWindow,);
+        SDL_SetWindowFullscreen(SpiochWindow, SDL_FALSE );
+        SDL_SetWindowSize( SpiochWindow, scrnW, scrnH );
+        SCREEN_W = scrnW;
+        SCREEN_H = scrnH;
+        SDL_SetWindowFullscreen( SpiochWindow, SDL_TRUE );
     }
     
     SDL_RenderPresent( SpiochRenderer );
@@ -612,11 +617,15 @@ bool opcje()
     bool quit = false;
     bool okno = false;
     bool fscr = false;
-    btt btt1, btt2, btt3;
+    bool resfhd = false;
+    bool reshdr = false;
+    btt btt1, btt2, btt3, btt4, btt5;
     DBtexture text;
     btt1.loadbtt("PNG/btt.png");
     btt2.loadbtt("PNG/btt.png");
     btt3.loadbtt("PNG/btt.png");
+    btt4.loadbtt("PNG/btt.png");
+    btt5.loadbtt("PNG/btt.png");
     text.setFont( 20 );
     SDL_Event e;
     while( !quit )
@@ -645,6 +654,26 @@ bool opcje()
                     okno = false;
                 }
             }
+            if(!SpiochW.resfhd)
+            {
+                resfhd = btt4.handleEvent( &e );
+                if( resfhd)
+                {
+                SpiochW.setresolution( 1920, 1080 );
+                resfhd = false;
+                SpiochW.resfhd = true;
+                }
+            }
+            else
+            {
+                reshdr = btt5.handleEvent( &e );
+                if( reshdr)
+                {
+                SpiochW.setresolution( 1280, 720 );
+                reshdr = false;
+                SpiochW.resfhd = false;
+                }
+            }
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
@@ -660,6 +689,18 @@ bool opcje()
             btt3.setpos(50, SpiochW.SCREEN_H/4);
             btt3.renderbtt(255);
             text.fintxt("Pełny Ekran", tcolor, 55, SpiochW.SCREEN_H/4 + 10, 255);
+        }
+        if( !SpiochW.resfhd )
+        {
+            btt4.setpos( 50, SpiochW.SCREEN_H/2 );
+            btt4.renderbtt( 255 );
+            text.fintxt("1920x1080", tcolor, 55, SpiochW.SCREEN_H/2 + 10, 255);
+        }
+        else
+        {
+            btt5.setpos( 50, SpiochW.SCREEN_H/2 );
+            btt5.renderbtt( 255 );
+            text.fintxt("1280x720", tcolor, 55, SpiochW.SCREEN_H/2 + 10, 255);
         }
         btt1.setpos( SpiochW.SCREEN_W/2 - 50, SpiochW.SCREEN_H - 100);
         btt1.renderbtt(255);
