@@ -344,7 +344,7 @@ bool btt::handleEvent( SDL_Event* e )
         {
             inside = false;
         }
-        else if( x > ePos.x + exitspritesheet.mWidth )
+        else if( x > ePos.x + exitspritesheet.getWidth() )
         {
             inside = false;
         }
@@ -352,7 +352,7 @@ bool btt::handleEvent( SDL_Event* e )
         {
             inside = false;
         }
-        else if( y > ePos.y + (exitspritesheet.mHeight/4) )
+        else if( y > ePos.y + (exitspritesheet.getHeight()/4) )
         {
             inside = false;
         }
@@ -628,11 +628,8 @@ bool menu()
 bool opcje()
 {
     bool quit = false;
-    //bool okno = false;
     bool fscr = false;
     bool resset = false;
-    //bool resfhd = false;
-    //bool reshdr = false;
     btt btt1, btt2, btt3, btt4, btt5;
     DBtexture text;
     btt1.loadbtt("PNG/btt.png");
@@ -650,25 +647,6 @@ bool opcje()
             {
                 quit = btt1.handleEvent( &e );
             }
-
-            /*if(SpiochW.fscrn)
-            {
-                okno = btt2.handleEvent( &e );
-                if(okno)
-                {
-                    SpiochW.setfullscrn( false );
-                    fscr = false;
-                }
-            }
-            else
-            {
-                fscr = btt3.handleEvent( &e );
-                if(fscr)
-                {
-                    SpiochW.setfullscrn( true );
-                    okno = false;
-                }
-            }*/
             if(!fscr)
             {
                 fscr = btt2.handleEvent( &e );
@@ -693,34 +671,16 @@ bool opcje()
                     if(!SpiochW.resfhd)
                     {
                         SpiochW.setresolution( 1920, 1080 );
+                        SpiochW.resfhd = true;
                     }
                     else
                     {
                         SpiochW.setresolution( 1280, 720 );
+                        SpiochW.resfhd = false;
                     }
                     resset = false;
                 }
 
-            /*if(!SpiochW.resfhd)
-            {
-                resfhd = btt4.handleEvent( &e );
-                if( resfhd)
-                {
-                SpiochW.setresolution( 1920, 1080 );
-                resfhd = false;
-                SpiochW.resfhd = true;
-                }
-            }
-            else
-            {
-                reshdr = btt5.handleEvent( &e );
-                if( reshdr)
-                {
-                SpiochW.setresolution( 1280, 720 );
-                reshdr = false;
-                SpiochW.resfhd = false;
-                }
-            }*/
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
