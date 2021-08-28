@@ -19,6 +19,7 @@ enum buttonsprite
 const SDL_Color tcolor = {0, 0, 0};
 const SDL_Color gcolor = {0, 255, 0};
 const SDL_Color rcolor = {255, 0, 0};
+const SDL_Color bcolor = {0, 0, 255};
 const SDL_Color wcolor = {255, 255, 255};
 
 class Window
@@ -26,7 +27,8 @@ class Window
 private:
     
     SDL_Window* SpiochWindow;
-    
+    int SCREEN_W = 0;
+    int SCREEN_H = 0;
 
 public:
     Window();
@@ -35,17 +37,15 @@ public:
     void setresolution( int scrnW, int scrnH );
     void setfullscrn( bool fs );
     void free();
-    int SCREEN_W = 0;
-    int SCREEN_H = 0;
+    int getScrnW();
+    int getScrnH();
     bool fscrn;
-    bool resfhd = false;
+    bool resfhd;
 };
 
 class DBtexture
 {
 public:
-    int mWidth;
-    int mHeight;
     DBtexture();
     ~DBtexture();
     void setFont(int size);
@@ -58,9 +58,11 @@ public:
     void setAplha( Uint8 alpha );
     void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
     void fintxt( std::string textureText, SDL_Color textColor, int x, int y, Uint8 alpha);
-private:
     int getWidth();
     int getHeight();
+private:
+    int mWidth;
+    int mHeight;
     TTF_Font* DBfont;
     SDL_Texture* mtexture;
 
@@ -106,6 +108,7 @@ Window::Window()
     SpiochWindow = NULL;
     SCREEN_W = 1280;
     SCREEN_H = 720;
+    resfhd = false;
 }
 
 bool Window::init()
@@ -167,6 +170,16 @@ void Window::free()
     }
     SCREEN_H = 0;
     SCREEN_W = 0;
+}
+
+int Window::getScrnW()
+{
+    return SCREEN_W;
+}
+
+int Window::getScrnH()
+{
+    return SCREEN_H;
 }
 
 DBtexture::DBtexture()
@@ -384,9 +397,9 @@ void btt::loadbtt( std::string path )
         for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
         {
             bexitclip[i].x = 0;
-            bexitclip[i].y = i * (exitspritesheet.mHeight/4);
-            bexitclip[i].w = exitspritesheet.mWidth;
-            bexitclip[i].h = exitspritesheet.mHeight/4;
+            bexitclip[i].y = i * (exitspritesheet.getHeight()/4);
+            bexitclip[i].w = exitspritesheet.getWidth();
+            bexitclip[i].h = exitspritesheet.getHeight()/4;
         }
     }
 }
@@ -519,10 +532,10 @@ void title()
     SDL_Rect doorclip[2];
     for(int d = 0; d < 2; ++d)
     {
-            doorclip[d].x = d * (door.mWidth/2);
+            doorclip[d].x = d * (door.getWidth()/2);
             doorclip[d].y = 0;
-            doorclip[d].w = door.mWidth/2;
-            doorclip[d].h = door.mHeight;
+            doorclip[d].w = SpiochW.getScrnW()/2;
+            doorclip[d].h = SpiochW.getScrnH();
     }
     bool quit = false;
     SDL_Event e;
@@ -552,8 +565,8 @@ void title()
         SDL_SetRenderDrawColor( SpiochRenderer, 0, 0, 0, 255 );
         SDL_RenderClear( SpiochRenderer );
         door.render( 0 - i, 0, &doorclip[0] );
-        door.render( (door.mWidth/2) + i, 0, &doorclip[1] );
-        btt1.setpos(SpiochW.SCREEN_W/2 - 51, SpiochW.SCREEN_H/2 - 51);
+        door.render( (SpiochW.getScrnW()/2) + i, 0, &doorclip[1] );
+        btt1.setpos(SpiochW.getScrnW()/2 - 51, SpiochW.getScrnH()/2 - 51);
         btt1.renderbtt(a);
         SDL_RenderPresent( SpiochRenderer );
     }
@@ -597,13 +610,13 @@ bool menu()
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
-        btt2.setpos(50, SpiochW.SCREEN_H/4);
+        btt2.setpos(50, SpiochW.getScrnH()/4);
         btt2.renderbtt(255);
-        btt3.setpos( 50, SpiochW.SCREEN_H/4 + 80);
+        btt3.setpos( 50, SpiochW.getScrnH()/4 + 80);
         btt3.renderbtt( 255 );
-        btt1.setpos( SpiochW.SCREEN_W/2 - 50, SpiochW.SCREEN_H - 100);
+        btt1.setpos( SpiochW.getScrnW()/2 - 50, SpiochW.getScrnH() - 100);
         btt1.renderbtt(255);
-        text.fintxt( "Zakończ", tcolor, SpiochW.SCREEN_W/2 - 40, SpiochW.SCREEN_H - 90, 255 );
+        text.fintxt( "Zakończ", tcolor, SpiochW.getScrnW()/2 - 40, SpiochW.getScrnH() - 90, 255 );
         SDL_RenderPresent( SpiochRenderer );
     }
     btt1.endbtt();
@@ -615,10 +628,11 @@ bool menu()
 bool opcje()
 {
     bool quit = false;
-    bool okno = false;
+    //bool okno = false;
     bool fscr = false;
-    bool resfhd = false;
-    bool reshdr = false;
+    bool resset = false;
+    //bool resfhd = false;
+    //bool reshdr = false;
     btt btt1, btt2, btt3, btt4, btt5;
     DBtexture text;
     btt1.loadbtt("PNG/btt.png");
@@ -636,7 +650,8 @@ bool opcje()
             {
                 quit = btt1.handleEvent( &e );
             }
-            if(SpiochW.fscrn)
+
+            /*if(SpiochW.fscrn)
             {
                 okno = btt2.handleEvent( &e );
                 if(okno)
@@ -653,8 +668,40 @@ bool opcje()
                     SpiochW.setfullscrn( true );
                     okno = false;
                 }
+            }*/
+            if(!fscr)
+            {
+                fscr = btt2.handleEvent( &e );
+                if( fscr )
+                {
+                    if(!SpiochW.fscrn)
+                    {
+                        SpiochW.setfullscrn( true );
+                    }
+                    else
+                    {
+                        SpiochW.setfullscrn( false );
+                    }
+                    fscr = false;
+                }
             }
-            if(!SpiochW.resfhd)
+
+            if(!resset)
+                resset = btt4.handleEvent( &e );
+                if(resset)
+                {
+                    if(!SpiochW.resfhd)
+                    {
+                        SpiochW.setresolution( 1920, 1080 );
+                    }
+                    else
+                    {
+                        SpiochW.setresolution( 1280, 720 );
+                    }
+                    resset = false;
+                }
+
+            /*if(!SpiochW.resfhd)
             {
                 resfhd = btt4.handleEvent( &e );
                 if( resfhd)
@@ -673,179 +720,46 @@ bool opcje()
                 reshdr = false;
                 SpiochW.resfhd = false;
                 }
-            }
+            }*/
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
-        
+        text.fintxt( "Opcje", bcolor, SpiochW.getScrnW()/2, 10, 255 );
+        text.fintxt( "Tryb wyświetlania:", tcolor, 50, 160, 255 );
+        btt2.setpos(50, 200);
+        btt2.renderbtt(255);
         if(SpiochW.fscrn)
         {
-            btt2.setpos(50, SpiochW.SCREEN_H/4);
-            btt2.renderbtt(255);
-            text.fintxt("okno", tcolor, 55, SpiochW.SCREEN_H/4 + 10, 255);
+            text.fintxt("okno", tcolor, 55, SpiochW.getScrnH()/4 + 10, 255);
         }
         else
         {
-            btt3.setpos(50, SpiochW.SCREEN_H/4);
-            btt3.renderbtt(255);
-            text.fintxt("Pełny Ekran", tcolor, 55, SpiochW.SCREEN_H/4 + 10, 255);
+            text.fintxt("Pełny Ekran", tcolor, 55, SpiochW.getScrnH()/4 + 10, 255);
         }
+        btt4.setpos( 50, 300 );
+        btt4.renderbtt( 255 );
         if( !SpiochW.resfhd )
         {
-            btt4.setpos( 50, SpiochW.SCREEN_H/2 );
-            btt4.renderbtt( 255 );
-            text.fintxt("1920x1080", tcolor, 55, SpiochW.SCREEN_H/2 + 10, 255);
+            text.fintxt("1920x1080", tcolor, 55, SpiochW.getScrnH()/2 + 10, 255);
         }
         else
         {
-            btt5.setpos( 50, SpiochW.SCREEN_H/2 );
-            btt5.renderbtt( 255 );
-            text.fintxt("1280x720", tcolor, 55, SpiochW.SCREEN_H/2 + 10, 255);
+            text.fintxt("1280x720", tcolor, 55, SpiochW.getScrnH()/2 + 10, 255);
         }
-        btt1.setpos( SpiochW.SCREEN_W/2 - 50, SpiochW.SCREEN_H - 100);
+        btt1.setpos( SpiochW.getScrnW()/2 - 50, SpiochW.getScrnH() - 100);
         btt1.renderbtt(255);
-        text.fintxt( "Wróć", tcolor, SpiochW.SCREEN_W/2 - 40, SpiochW.SCREEN_H - 90, 255 );
-        SDL_RenderPresent( SpiochRenderer );
-    }
-    btt1.endbtt();
-    btt2.endbtt();
-    text.free();
-    return false;
-}
-/*
-bool scena1()
-{
-    
-    bool bar1p = false;
-    bool dajs = false;
-    bool wprowadzenie = false;
-    int f = 0;
-    int i = 0;
-    int w = 0;
-    Uint8 a = 0;
-    btt btt1, btt2, btt3, btt4;
-    btt1.loadbtt("PNG/btt.png");
-    btt2.loadbtt("PNG/chcebar.png");
-    btt3.loadbtt("PNG/chcebar.png");
-    btt4.loadbtt("PNG/chcebar.png");
-    
-    DBtexture text;
-    text.setFont( 20 );
-    
-    
-    bool quit = false;
-    SDL_Event e;
-    
-    while( !wprowadzenie )
-    {
-        while( SDL_PollEvent( &e ) != 0 )
-        {
-            
-            if( !wprowadzenie )
-            {
-                 wprowadzenie = btt1.handleEvent( &e );
-            }
-        }
-        SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
-        SDL_RenderClear( SpiochRenderer );
-        text.loadText( "Wielki precel z pary wodnej wyglądał niezwykle majestatycznie gdy w świetle księżyca", tcolor);
-        text.render(100, 20);
-        text.loadText( "obserwowało się jak otacza całą Oktawie.  Zarazem bronił przed światem zewnętrznym jak i nie", tcolor );
-        text.render(100, 45);
-        text.loadText( "pozwalał się wydostać. Wiedziałem już, że i tak nie było po co się wydostawać. Chyba, że ktoś", tcolor );
-        text.render(100, 70);
-        text.loadText( "lubił patrzeć na niekończącą się powierzchnię stwardniałego waniliowego budyniu ze szczyptą", tcolor );
-        text.render(100, 95);
-        text.loadText( "cynamonu. Słońce właśnie wyłaniało się z zza wiecznej chmury oświetlając kolejno każdy z", tcolor );
-        text.render(100, 120);
-        text.loadText( "ośmiu pierścieni", tcolor);
-        text.render(100, 145);
-        if( i >= 50 )
-        {
-            text.fintxt( "Mój świat jest daleko. Czy może raczej dawno? Wyruszam dzisiaj po to by nie przepadły", tcolor, 100, 200, f );
-            text.fintxt( "resztki tego co mnie z nim wiążą. Tak naprawdę nie wierzyłem w to, że cokolwiek zostało z tego", tcolor, 100, 225, f );
-            text.fintxt( "co ukryłem w skryte wbudowanej w podstawę mojej trumny. Jednakże musiałem spróbować", tcolor, 100, 250, f);
-            text.fintxt( "Dla siebie, by nie oszaleć od obcości Oktawii.", tcolor, 100, 275, f );
-            if( f < 255 )
-            {
-                f += 3;
-            }
-        }
-        if( i >= 180)
-        {
-            text.fintxt( "Te ponure rozmyślania przerwał mi Gyce.", tcolor, 100, 350, w );
-            if( w < 255 )
-            {
-                w++;
-            }
-        }
-        if( i >= 400 )
-        {
-            btt1.setpos(SpiochW.SCREEN_W/2 - 50, SpiochW.SCREEN_H/2 - 25 );
-            btt1.renderbtt(a);
-            text.fintxt(" Dalej", tcolor, SpiochW.SCREEN_W/2 - 40, SpiochW.SCREEN_H/2 - 20, a);
-            if(a < 255 )
-            {
-                a += 17;
-            }
-        }
-        SDL_RenderPresent( SpiochRenderer );
-        ++i;
-    }
-    while( !quit )
-    {
-        while( SDL_PollEvent( &e ) != 0 )
-        {
-            if( !quit )
-            {
-                quit = btt1.handleEvent( &e );
-            }
-            if( bar1p == false )
-            {
-                bar1p = btt2.handleEvent( &e );
-            }
-            btt3.handleEvent( &e );
-            btt4.handleEvent( &e );
-        }
-        SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255);
-        SDL_RenderClear( SpiochRenderer );
-        btt1.setpos( SpiochW.SCREEN_W/2 - 50, SpiochW.SCREEN_H/2 - 25 );    
-        btt1.renderbtt(255);
-        text.fintxt("Zakończ", tcolor, SpiochW.SCREEN_W/2 - 40, SpiochW.SCREEN_H/2 - 20, 255 );
-        if( bar1p == false )
-        {
-            btt2.setpos( 50, 660 );
-            btt2.renderbtt(255);
-            text.fintxt("Daj mi spokój", tcolor, 70, 680, 255 );
-        }
-        btt3.setpos( 50, 780 );
-        btt3.renderbtt(255);
-        btt4.setpos( 50, 900 );
-        btt4.renderbtt(255);
-        text.loadText( "Gyce", gcolor );
-        text.render( 50, 50);
-        text.loadText(" – Jeżeli dobrze zrozumiałem zostawiłeś coś w kapliczce i teraz chcesz to odzyskać?", tcolor);
-        text.render( 95, 50);
-        if( bar1p == true )
-        {
-            text.loadText("Bin", rcolor );
-            text.render( 50, 75 );
-            text.loadText(" - Daj mi spokój", tcolor);
-            text.render( 95, 75 );
-            text.loadText("Gyce zapatrzył się na chmurę, nie reagując na moją niegrzeczność. Nie odszedł jednak", tcolor );
-            text.render(50, 100 );
-        }
+        text.fintxt( "Wróć", tcolor, SpiochW.getScrnW()/2 - text.getWidth()/2, SpiochW.getScrnH() - text.getHeight()/2, 255 );
         SDL_RenderPresent( SpiochRenderer );
     }
     btt1.endbtt();
     btt2.endbtt();
     btt3.endbtt();
     btt4.endbtt();
-    text.fontend();
-
-    return true;
+    btt5.endbtt();
+    text.free();
+    return false;
 }
-*/
+
 int main( int argc, char* argd[] )
 {
     bool end = false;
