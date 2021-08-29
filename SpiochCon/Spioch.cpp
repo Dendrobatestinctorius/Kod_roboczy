@@ -22,6 +22,7 @@ const SDL_Color rcolor = {255, 0, 0};
 const SDL_Color bcolor = {0, 0, 255};
 const SDL_Color wcolor = {255, 255, 255};
 
+//okno, obsługa okna
 class Window
 {
 private:
@@ -43,6 +44,7 @@ public:
     bool resfhd;
 };
 
+//tekstura, manipulacja teksturą
 class DBtexture
 {
 public:
@@ -68,6 +70,7 @@ private:
 
 };
 
+//przycisk i obsługa przycisku
 class btt
 {
 public:
@@ -84,7 +87,8 @@ private:
     buttonsprite exitcurrentsprite;
     SDL_Rect bexitclip[BUTTON_SPRITE_TOTAL];
 };
-/*
+
+//Dźwiek, wczytywanie i obsługa
 class sound
 {
 private:
@@ -97,12 +101,20 @@ public:
     void endsnd();
 
 };
-*/
 
+//zmienne globalne
 SDL_Renderer* SpiochRenderer = NULL;
 Window SpiochW;
 
+//deklaracje funkcji
+bool init();
+void close();
+void title();
+void intro();
+bool menu();
+bool opcje();
 
+//konstruktor klasy okna
 Window::Window()
 {
     SpiochWindow = NULL;
@@ -111,6 +123,7 @@ Window::Window()
     resfhd = false;
 }
 
+//zbudowanie okna, ustawienie fullscreen 720p default
 bool Window::init()
 {
     SpiochWindow = SDL_CreateWindow( "Spioch Gra Fabularna", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W, SCREEN_H, SDL_WINDOW_SHOWN );
@@ -123,11 +136,13 @@ bool Window::init()
 
 }
 
+//ustawienie właściwości renderer
 SDL_Renderer* Window::createRenderer()
 {
     return SDL_CreateRenderer( SpiochWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 }
 
+//zmiana rozdzielczości okna
 void Window::setresolution( int scrnW, int scrnH )
 {
     if(!fscrn)
@@ -148,6 +163,7 @@ void Window::setresolution( int scrnW, int scrnH )
     SDL_RenderPresent( SpiochRenderer );
 }
 
+//pełny ekran/okno
 void Window::setfullscrn( bool fs )
 {
     if( !fs )
@@ -162,6 +178,7 @@ void Window::setfullscrn( bool fs )
     }
 }
 
+//zwolnienie zasobów okna
 void Window::free()
 {
     if( SpiochWindow != NULL )
@@ -182,6 +199,7 @@ int Window::getScrnH()
     return SCREEN_H;
 }
 
+//konstruktor tekstury
 DBtexture::DBtexture()
 {
     mtexture = NULL;
@@ -189,11 +207,13 @@ DBtexture::DBtexture()
     mHeight = 0;
 }
 
+//dekonstruktor tekstury
 DBtexture::~DBtexture()
 {
     free();
 }
 
+//Ładowanie tektury do pamięci
 bool DBtexture::LFF( std::string path)
 {
     free();
@@ -218,31 +238,30 @@ bool DBtexture::LFF( std::string path)
     return mtexture != NULL;
 }
 
+//ttf i rozmiar czcionki
 void DBtexture::setFont(int size)
 {
     DBfont = TTF_OpenFont( "Font/ComicSansMS3.ttf", size );
 }
 
+//zwolnienie zasobów ttf
 void DBtexture::fontend()
 {
     TTF_CloseFont( DBfont );
     DBfont = NULL;
 }
 
+//Ładowanie zmiennej string do tektury
 bool DBtexture::loadText( std::string textureText, SDL_Color textColor )
 {
-	//Get rid of preexisting texture
 	free();
-
-	//Render text surface
-	SDL_Surface* textSurface = TTF_RenderUTF8_Solid( DBfont, textureText.c_str() , textColor );
+    SDL_Surface* textSurface = TTF_RenderUTF8_Solid( DBfont, textureText.c_str() , textColor );
 	if( textSurface == NULL )
 	{
 		printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
 	}
 	else
 	{
-		//Create texture from surface pixels
         mtexture = SDL_CreateTextureFromSurface( SpiochRenderer, textSurface );
 		if( mtexture == NULL )
 		{
@@ -250,21 +269,16 @@ bool DBtexture::loadText( std::string textureText, SDL_Color textColor )
 		}
 		else
 		{
-			//Get image dimensions
 			mWidth = textSurface->w;
 			mHeight = textSurface->h;
 		}
-
-		//Get rid of old surface
 		SDL_FreeSurface( textSurface );
 	}
-	
-	//Return success
 	return mtexture != NULL;
 }
 
 
-
+//Zwolnienie zasobów tekstury
 void DBtexture::free()
 {
     if( mtexture != NULL )
@@ -291,6 +305,7 @@ void DBtexture::setAplha( Uint8 alpha )
     SDL_SetTextureAlphaMod( mtexture, alpha );
 }
 
+//wyświetlenie tekstury do aktualnego renderer
 void DBtexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip)
 {
     SDL_Rect RendererQ = {x, y, mWidth, mHeight};
@@ -312,6 +327,7 @@ int DBtexture::getHeight()
     return mHeight;
 }
 
+//Wyświetlenie tekstury ttf z obsługą alpha blending
 void DBtexture::fintxt( std::string textureText, SDL_Color textColor, int x, int y, Uint8 alpha)
 {
     loadText( textureText, tcolor );
@@ -320,6 +336,7 @@ void DBtexture::fintxt( std::string textureText, SDL_Color textColor, int x, int
     render(x, y);
 }
 
+//konstruktor przycisku
 btt::btt()
 {
     ePos.x = 0;
@@ -333,6 +350,7 @@ void btt::setpos( int x, int y )
     ePos.y = y;
 }
 
+//obsługa przycisku, mausebuttonup zwraca TRUE
 bool btt::handleEvent( SDL_Event* e )
 {
     if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP )
@@ -380,6 +398,7 @@ bool btt::handleEvent( SDL_Event* e )
     return false;
 }
 
+//wyświetlenie przycisku z obsługą alpha blending
 void btt::renderbtt( Uint8 alpha )
 {
     exitspritesheet.setBlendMode( SDL_BLENDMODE_BLEND );
@@ -387,6 +406,7 @@ void btt::renderbtt( Uint8 alpha )
     exitspritesheet.render( ePos.x, ePos.y, &bexitclip[exitcurrentsprite] );
 }
 
+//Załadowanie tekstury przycisku i podzielenie sprite
 void btt::loadbtt( std::string path )
 {
     if(!exitspritesheet.LFF( path ) )
@@ -404,15 +424,17 @@ void btt::loadbtt( std::string path )
     }
 }
 
+//zwolnienie zasobów przycisku
 void btt::endbtt()
 {
     exitspritesheet.free();
 }
 
+//inicjalizacja SDL
 bool init()
 {
     bool success = true;
-    if( SDL_Init( SDL_INIT_VIDEO /*|  SDL_INIT_AUDIO */ ) < 0)
+    if( SDL_Init( SDL_INIT_VIDEO |  SDL_INIT_AUDIO  ) < 0)
     {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         success = false;
@@ -451,22 +473,24 @@ bool init()
                     printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
                     success = false;
                 }
- /*               if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+                if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
                 {
                     printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
                     success = false;
-                } */
+                } 
             }
         }        
     }
     return success;
 }
-/*
+
+//konstruktor dżwieku
 sound::sound()
 {
     mmusic = NULL;
 }
 
+//załadowanie dzwieku do pamięci
 void sound::loadmusic( std::string path )
 {
     mmusic = Mix_LoadMUS( path.c_str() );
@@ -489,12 +513,14 @@ void sound::stopsnd()
     Mix_HaltMusic();
 }
 
+//zwolnienie zasobów dzwieku
 void sound::endsnd()
 {
     Mix_FreeMusic( mmusic );
     mmusic = NULL;
 }
-*/
+
+//zakończenie obsługi SDL, zwolnienie zasobów
 void close()
 {
     SDL_DestroyRenderer( SpiochRenderer );
@@ -514,7 +540,7 @@ void intro()
     {
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
-        intro.render( 0, 0 );
+        intro.render( SpiochW.getScrnW()/2 - intro.getWidth()/2 , SpiochW.getScrnH()/2 - intro.getHeight()/2 );
         SDL_RenderPresent( SpiochRenderer );
         ++i;
     }
@@ -575,7 +601,7 @@ void title()
     
 }
 
-bool opcje();
+
 
 bool menu()
 {
@@ -686,8 +712,10 @@ bool opcje()
         SDL_RenderClear( SpiochRenderer );
         text.fintxt( "Opcje", bcolor, SpiochW.getScrnW()/2, 10, 255 );
         text.fintxt( "Tryb wyświetlania:", tcolor, 50, 160, 255 );
-        btt2.setpos(50, 200);
+        btt2.setpos(50, SpiochW.getScrnH()/4);
         btt2.renderbtt(255);
+        btt4.setpos( 50, SpiochW.getScrnH()/2 );
+        btt4.renderbtt( 255 );
         if(SpiochW.fscrn)
         {
             text.fintxt("okno", tcolor, 55, SpiochW.getScrnH()/4 + 10, 255);
@@ -696,8 +724,7 @@ bool opcje()
         {
             text.fintxt("Pełny Ekran", tcolor, 55, SpiochW.getScrnH()/4 + 10, 255);
         }
-        btt4.setpos( 50, 300 );
-        btt4.renderbtt( 255 );
+        
         if( !SpiochW.resfhd )
         {
             text.fintxt("1920x1080", tcolor, 55, SpiochW.getScrnH()/2 + 10, 255);
@@ -708,7 +735,7 @@ bool opcje()
         }
         btt1.setpos( SpiochW.getScrnW()/2 - 50, SpiochW.getScrnH() - 100);
         btt1.renderbtt(255);
-        text.fintxt( "Wróć", tcolor, SpiochW.getScrnW()/2 - text.getWidth()/2, SpiochW.getScrnH() - text.getHeight()/2, 255 );
+        text.fintxt( "Wróć", tcolor, SpiochW.getScrnW()/2 - text.getWidth()/2, SpiochW.getScrnH() - 80, 255 );
         SDL_RenderPresent( SpiochRenderer );
     }
     btt1.endbtt();
@@ -729,18 +756,18 @@ int main( int argc, char* argd[] )
     }
     else
     {
-        //sound tlo;
-        //tlo.loadmusic( "Sound/music.mp3" );
+        sound tlo;
+        tlo.loadmusic( "Sound/music.mp3" );
         intro();
         while (!end)
         {
             
-            //tlo.playsnd();
+            tlo.playsnd();
             title();
             end = menu();
         }
-        //tlo.stopsnd();
-        //tlo.endsnd();
+        tlo.stopsnd();
+        tlo.endsnd();
     } 
     close();
     return 0;
