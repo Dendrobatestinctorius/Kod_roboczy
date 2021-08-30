@@ -38,6 +38,7 @@ public:
     void setresolution( int scrnW, int scrnH );
     void setfullscrn( bool fs );
     void free();
+    void savesettings();
     int getScrnW();
     int getScrnH();
     bool fscrn;
@@ -102,9 +103,19 @@ public:
 
 };
 
+class Postac
+{
+public:
+    std::string name;
+    bool alive;
+    Postac();
+    void savegame();
+};
+
 //zmienne globalne
 SDL_Renderer* SpiochRenderer = NULL;
 Window SpiochW;
+Postac player;
 
 //deklaracje funkcji
 bool init();
@@ -118,9 +129,38 @@ bool opcje();
 Window::Window()
 {
     SpiochWindow = NULL;
-    SCREEN_W = 1280;
-    SCREEN_H = 720;
-    resfhd = false;
+    SDL_RWops* settings = SDL_RWFromFile("bin/settings.bin", "r+b");
+    if( settings == NULL )
+    {
+        printf(" new setting created\n");
+        settings = SDL_RWFromFile( "bin/settings.bin", "w+b" );
+        if(settings != NULL )
+        {
+            SCREEN_W = 1280;
+            SCREEN_H = 720;
+            resfhd = false;
+            fscrn = true;
+            SDL_RWwrite( settings, &SCREEN_W, sizeof(int), 1);
+            SDL_RWwrite( settings, &SCREEN_H, sizeof(int), 1);
+            SDL_RWwrite( settings, &resfhd, sizeof(bool), 1);
+            SDL_RWwrite( settings, &fscrn, sizeof(bool), 1);
+            SDL_RWclose( settings );
+        }
+        else
+        {
+            printf( "Error: unable to create setting file! SDL Error: %s\n", SDL_GetError );
+        }
+    }
+    else
+    {
+        printf( "Reading settings\n" );
+        SDL_RWread( settings, &SCREEN_W, sizeof(int), 1);
+        SDL_RWread( settings, &SCREEN_H, sizeof(int), 1);
+        SDL_RWread( settings, &resfhd, sizeof(bool), 1);
+        SDL_RWread( settings, &fscrn, sizeof(bool), 1);
+        SDL_RWclose( settings );
+    }
+    
 }
 
 //zbudowanie okna, ustawienie fullscreen 720p default
@@ -129,8 +169,14 @@ bool Window::init()
     SpiochWindow = SDL_CreateWindow( "Spioch Gra Fabularna", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W, SCREEN_H, SDL_WINDOW_SHOWN );
     if( SpiochWindow != NULL )
     {
-        SDL_SetWindowFullscreen( SpiochWindow, SDL_TRUE );
-        fscrn = true;
+        if( !fscrn )
+        {
+            setfullscrn( false );
+        }
+        else
+        {
+            setfullscrn( true );
+        }
     }
     return SpiochWindow != NULL;
 
@@ -187,6 +233,23 @@ void Window::free()
     }
     SCREEN_H = 0;
     SCREEN_W = 0;
+}
+
+void Window::savesettings()
+{
+    SDL_RWops* settings = SDL_RWFromFile("bin/settings.bin", "w+b");
+    if( settings != NULL )
+    {
+        SDL_RWwrite( settings, &SCREEN_W, sizeof(int), 1);
+        SDL_RWwrite( settings, &SCREEN_H, sizeof(int), 1);
+        SDL_RWwrite( settings, &resfhd, sizeof(bool), 1);
+        SDL_RWwrite( settings, &fscrn, sizeof(bool), 1);
+        SDL_RWclose( settings );
+    }
+    else
+    {
+        printf( "Error: unable to save settings %s\n", SDL_GetError );
+    }
 }
 
 int Window::getScrnW()
@@ -430,6 +493,50 @@ void btt::endbtt()
     exitspritesheet.free();
 }
 
+//kostruktor postaci
+Postac::Postac()
+{
+    
+    SDL_RWops* postac = SDL_RWFromFile( "bin/postac.bin", "r+b");
+    if( postac == NULL )
+    {
+        printf(" new character created\n");
+        postac = SDL_RWFromFile( "bin/postac.bin", "w+b" );
+        if(postac != NULL )
+        {
+            name = "Bin";
+            SDL_RWwrite( postac, &name, sizeof(name.size()), 1);
+            SDL_RWclose( postac );
+        }
+        else
+        {
+            printf( "Error: unable to create character file! SDL Error: %s\n", SDL_GetError );
+        }
+    }
+    else
+    {
+        printf( "Reading character\n" );
+        SDL_RWread( postac, &name, sizeof(name.size()), 1);
+        SDL_RWclose( postac );
+    }
+
+}
+
+//zapisane danych sesji
+void Postac::savegame()
+{
+    SDL_RWops* postac = SDL_RWFromFile("bin/postac.bin", "w+b");
+    if( postac != NULL )
+    {
+        SDL_RWwrite( postac, &name, sizeof(name.size()), 1);
+        SDL_RWclose( postac );
+    }
+    else
+    {
+        printf( "Error: unable to save settings %s\n", SDL_GetError );
+    }
+}
+
 //inicjalizacja SDL
 bool init()
 {
@@ -523,6 +630,8 @@ void sound::endsnd()
 //zakończenie obsługi SDL, zwolnienie zasobów
 void close()
 {
+    SpiochW.savesettings();
+    player.savegame();
     SDL_DestroyRenderer( SpiochRenderer );
     SpiochW.free();
     SpiochRenderer = NULL;
