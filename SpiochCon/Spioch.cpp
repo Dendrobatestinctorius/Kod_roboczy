@@ -120,10 +120,11 @@ Postac player;
 //deklaracje funkcji
 bool init();
 void close();
+bool intro();
 void title();
-void intro();
 bool menu();
 bool opcje();
+bool scena();
 
 //konstruktor klasy okna
 Window::Window()
@@ -393,7 +394,7 @@ int DBtexture::getHeight()
 //Wyświetlenie tekstury ttf z obsługą alpha blending
 void DBtexture::fintxt( std::string textureText, SDL_Color textColor, int x, int y, Uint8 alpha)
 {
-    loadText( textureText, tcolor );
+    loadText( textureText, textColor );
     setBlendMode( SDL_BLENDMODE_BLEND );
     setAplha( alpha );
     render(x, y);
@@ -640,7 +641,7 @@ void close()
     SDL_Quit();
 }
 
-void intro()
+void title()
 {
     DBtexture intro;
     intro.LFF( "PNG/intro.png" );
@@ -658,25 +659,76 @@ void intro()
 
 }
 
-void title()
+bool intro()
 {
     btt btt1;
     DBtexture door;
-    btt1.loadbtt("PNG/Candle_btt.png");
-    door.LFF("PNG/door.png");
+    btt1.loadbtt( "PNG/Candle_btt.png" );
+    door.LFF( "PNG/door.png" );
+    DBtexture text;
+    text.setFont( 20 );
     SDL_Rect doorclip[2];
     for(int d = 0; d < 2; ++d)
     {
-            doorclip[d].x = d * (door.getWidth()/2);
+            doorclip[d].x = d * ( door.getWidth()/2 );
             doorclip[d].y = 0;
             doorclip[d].w = SpiochW.getScrnW()/2;
             doorclip[d].h = SpiochW.getScrnH();
     }
     bool quit = false;
     SDL_Event e;
-    int i = 0;
+    int fintxt = 0;
+    int fintxt1 = 0;
+    int fintxt2 = 0;
+    int fintxt3 = 0;
+    int txtin = 0;
+    int doorcounter = 0;
     int a = 255;
-    while(i < 960 )
+    text.loadText("W latach trzydziestych XXI wieku,  odbyło się globalne referendum. W nim obywatele ziemi", tcolor );
+    int txtln = text.getWidth();
+    while(txtin < 600 )
+    {
+        SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
+        SDL_RenderClear( SpiochRenderer );
+        text.fintxt( "W latach trzydziestych XXI wieku,  odbyło się globalne referendum. W nim obywatele ziemi", tcolor,SpiochW.getScrnW()/2 - txtln/2, 100, fintxt );
+        text.fintxt( "zadecydowali, że oddają władzę z rąk skostniałych i nieefektywnych struktur państwowych.", tcolor,SpiochW.getScrnW()/2 - txtln/2, 130, fintxt );
+        text.fintxt( "Po plebiscycie władzę objęli faktyczni posiadacze większości majątku i dóbr planety.    ", tcolor,SpiochW.getScrnW()/2 - txtln/2, 160, fintxt );
+        if( fintxt < 255 )
+        {
+            fintxt += 17;
+        }
+        
+        if( txtin > 180 )
+        {
+            text.fintxt( "Korporacje.", rcolor, SpiochW.getScrnW()/2 - txtln/2, 190, fintxt1 );
+            if( fintxt1 < 255 )
+            {
+                fintxt1 += 17;
+            }
+        }
+        if( txtin > 240 )
+        {
+            text.fintxt( "W Europie największe wpływy miała Candle Corporation. Stawiająca na rozwój nie bacząc na", tcolor, SpiochW.getScrnW()/2 - txtln/2, 250, fintxt2 );
+            text.fintxt( "jego koszty. Mieszkańcy czuli się swobodnie i żyli dostatnio. Wiedzieli jednak, że najgorsze co", tcolor, SpiochW.getScrnW()/2 - txtln/2, 280, fintxt2 );
+            text.fintxt( "mogliby uczynić, to wejść w drogę planom Candle.", tcolor, SpiochW.getScrnW()/2 - txtln/2, 310, fintxt2 );
+            if( fintxt2 < 255 )
+            {
+                fintxt2 += 17;
+            }
+        }
+        if( txtin > 380 )
+        {
+            text.fintxt( "Tak już od kilkunastu lat wszędzie gdzie dzieje się coś ważnego, widnieje znak złotej świecy...", tcolor, SpiochW.getScrnW()/2 - txtln/2, 350, fintxt3 );
+            if( fintxt3 < 255 )
+            {
+                fintxt3 += 17;
+            }
+        }
+        txtin++;
+        SDL_RenderPresent( SpiochRenderer );
+
+    }
+    while( doorcounter < 960 )
     {
         while( SDL_PollEvent( &e ) != 0 )
         {
@@ -693,21 +745,52 @@ void title()
             }
             if( a == 0)
             {
-                i += 5;
+                doorcounter += 5;
             }
             
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 0, 0, 0, 255 );
         SDL_RenderClear( SpiochRenderer );
-        door.render( 0 - i, 0, &doorclip[0] );
-        door.render( (SpiochW.getScrnW()/2) + i, 0, &doorclip[1] );
+        door.render( 0 - doorcounter, 0, &doorclip[0] );
+        door.render( (SpiochW.getScrnW()/2) + doorcounter, 0, &doorclip[1] );
         btt1.setpos(SpiochW.getScrnW()/2 - 51, SpiochW.getScrnH()/2 - 51);
         btt1.renderbtt(a);
         SDL_RenderPresent( SpiochRenderer );
     }
+    txtin = 0;
+    fintxt = 0;
+    while( txtin < 160 )
+    {
+        SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
+        SDL_RenderClear( SpiochRenderer );
+        text.fintxt( "Rok 2043, okolice dawnej Mangalii", tcolor, SpiochW.getScrnW()/2 - txtln/2, SpiochW.getScrnH()/2 - text.getHeight()/2 , fintxt );
+        if( fintxt < 255 )
+        {
+            fintxt += 17;
+        }
+        SDL_RenderPresent( SpiochRenderer );
+        txtin++;
+    }
+    txtin = 0;
+    fintxt = 0;
+    while( txtin < 220 )
+    {
+        SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
+        SDL_RenderClear( SpiochRenderer );
+        text.fintxt( "W nieczynnym kominie geotermalnym korporacja Candle prowadzi ściśle tajny projekt. ", tcolor, SpiochW.getScrnW()/2 - txtln/2, SpiochW.getScrnH()/2 - text.getHeight()/2 , fintxt );
+        text.fintxt( "Tak się składa drogi graczu, że właśnie zostałeś wybrany by wziąć w nim udział. ", tcolor, SpiochW.getScrnW()/2 - txtln/2, SpiochW.getScrnH()/2 - text.getHeight()/2 + 30 , fintxt );
+        if( fintxt < 255 )
+        {
+            fintxt += 17;
+        }
+        SDL_RenderPresent( SpiochRenderer );
+        txtin++;
+    }
     door.free();
     btt1.endbtt();
-    
+    text.fontend();
+    text.free();
+    return false;
 }
 
 
@@ -716,6 +799,7 @@ bool menu()
 {
     bool quit = false;
     bool opc = false;
+    bool ng = false;
     btt btt1, btt2, btt3;
     DBtexture text;
     btt1.loadbtt("PNG/btt.png");
@@ -736,12 +820,18 @@ bool menu()
             {
                 opc = btt3.handleEvent( &e );
             }
-            btt2.handleEvent( &e );
-
+            if( !ng )
+            {
+                ng = btt2.handleEvent( &e );
+            }
         }
         if( opc )
         {
             opc = opcje();
+        }
+        if( ng )
+        {
+            ng = intro();
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
@@ -769,9 +859,7 @@ bool opcje()
     DBtexture text;
     btt1.loadbtt("PNG/btt.png");
     btt2.loadbtt("PNG/btt.png");
-    btt3.loadbtt("PNG/btt.png");
     btt4.loadbtt("PNG/btt.png");
-    btt5.loadbtt("PNG/btt.png");
     text.setFont( 20 );
     SDL_Event e;
     while( !quit )
@@ -785,75 +873,79 @@ bool opcje()
             if(!fscr)
             {
                 fscr = btt2.handleEvent( &e );
-                if( fscr )
-                {
-                    if(!SpiochW.fscrn)
-                    {
-                        SpiochW.setfullscrn( true );
-                    }
-                    else
-                    {
-                        SpiochW.setfullscrn( false );
-                    }
-                    fscr = false;
-                }
             }
 
             if(!resset)
+            {
                 resset = btt4.handleEvent( &e );
-                if(resset)
+            }
+        }
+        if( fscr )
+            {
+                if(!SpiochW.fscrn)
                 {
-                    if(!SpiochW.resfhd)
-                    {
-                        SpiochW.setresolution( 1920, 1080 );
-                        SpiochW.resfhd = true;
-                    }
-                    else
-                    {
-                        SpiochW.setresolution( 1280, 720 );
-                        SpiochW.resfhd = false;
-                    }
+                    SpiochW.setfullscrn( true );
+                }
+                else
+                {
+                    SpiochW.setfullscrn( false );
+                }
+                    fscr = false;
+                }
+        if(resset)
+            {
+                if(!SpiochW.resfhd)
+                {
+                    SpiochW.setresolution( 1920, 1080 );
+                    SpiochW.resfhd = true;
+                }
+                else
+                {
+                    SpiochW.setresolution( 1280, 720 );
+                    SpiochW.resfhd = false;
+                }
                     resset = false;
                 }
-
-        }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
         text.fintxt( "Opcje", bcolor, SpiochW.getScrnW()/2, 10, 255 );
-        text.fintxt( "Tryb wyświetlania:", tcolor, 50, 160, 255 );
-        btt2.setpos(50, SpiochW.getScrnH()/4);
+        text.fintxt( "Tryb wyświetlania:", tcolor, 50, 100, 255 );
+        btt2.setpos(50, 150);
         btt2.renderbtt(255);
-        btt4.setpos( 50, SpiochW.getScrnH()/2 );
+        btt4.setpos( 50, 250 );
         btt4.renderbtt( 255 );
         if(SpiochW.fscrn)
         {
-            text.fintxt("okno", tcolor, 55, SpiochW.getScrnH()/4 + 10, 255);
+            text.fintxt("okno", tcolor, 55, 160, 255);
         }
         else
         {
-            text.fintxt("Pełny Ekran", tcolor, 55, SpiochW.getScrnH()/4 + 10, 255);
+            text.fintxt("Pełny Ekran", tcolor, 55, 160, 255);
         }
         
         if( !SpiochW.resfhd )
         {
-            text.fintxt("1920x1080", tcolor, 55, SpiochW.getScrnH()/2 + 10, 255);
+            text.fintxt("1920x1080", tcolor, 55, 260, 255);
         }
         else
         {
-            text.fintxt("1280x720", tcolor, 55, SpiochW.getScrnH()/2 + 10, 255);
+            text.fintxt("1280x720", tcolor, 55, 260, 255);
         }
         btt1.setpos( SpiochW.getScrnW()/2 - 50, SpiochW.getScrnH() - 100);
         btt1.renderbtt(255);
-        text.fintxt( "Wróć", tcolor, SpiochW.getScrnW()/2 - text.getWidth()/2, SpiochW.getScrnH() - 80, 255 );
+        text.fintxt( "Wróć", tcolor, SpiochW.getScrnW()/2 - 25, SpiochW.getScrnH() - 90, 255 );
         SDL_RenderPresent( SpiochRenderer );
     }
     btt1.endbtt();
     btt2.endbtt();
-    btt3.endbtt();
     btt4.endbtt();
-    btt5.endbtt();
     text.free();
     return false;
+}
+
+bool scena()
+{
+
 }
 
 int main( int argc, char* argd[] )
@@ -867,12 +959,11 @@ int main( int argc, char* argd[] )
     {
         sound tlo;
         tlo.loadmusic( "Sound/music.mp3" );
-        intro();
+        title();
         while (!end)
         {
             
             tlo.playsnd();
-            title();
             end = menu();
         }
         tlo.stopsnd();
