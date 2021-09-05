@@ -106,8 +106,9 @@ public:
 class Postac
 {
 public:
-    std::string name;
+    char name[10] = "Bin      ";
     bool alive;
+    int scena;
     Postac();
     void savegame();
 };
@@ -120,11 +121,13 @@ Postac player;
 //deklaracje funkcji
 bool init();
 void close();
-bool intro();
 void title();
+void intro();
+bool game();
+bool scena1();
 bool menu();
 bool opcje();
-bool scena();
+
 
 //konstruktor klasy okna
 Window::Window()
@@ -497,16 +500,19 @@ void btt::endbtt()
 //kostruktor postaci
 Postac::Postac()
 {
-    
     SDL_RWops* postac = SDL_RWFromFile( "bin/postac.bin", "r+b");
     if( postac == NULL )
     {
-        printf(" new character created\n");
+        printf( "new character created\n");
         postac = SDL_RWFromFile( "bin/postac.bin", "w+b" );
         if(postac != NULL )
         {
-            name = "Bin";
-            SDL_RWwrite( postac, &name, sizeof(name.size()), 1);
+            scena = 1;
+            for(int i = 0; i < 10; i++ )
+            {
+                SDL_RWwrite( postac, &name[i], sizeof(char), 1);
+            }
+            SDL_RWwrite( postac, &scena, sizeof(int), 1);
             SDL_RWclose( postac );
         }
         else
@@ -517,7 +523,11 @@ Postac::Postac()
     else
     {
         printf( "Reading character\n" );
-        SDL_RWread( postac, &name, sizeof(name.size()), 1);
+        for(int i = 0; i < 10; i++ )
+        {
+            SDL_RWread( postac, &name[i], sizeof(char), 1 );
+        }
+        SDL_RWread( postac, &scena, sizeof(int), 1 );
         SDL_RWclose( postac );
     }
 
@@ -529,7 +539,11 @@ void Postac::savegame()
     SDL_RWops* postac = SDL_RWFromFile("bin/postac.bin", "w+b");
     if( postac != NULL )
     {
-        SDL_RWwrite( postac, &name, sizeof(name.size()), 1);
+        for(int i = 0; i < 10; i++ )
+        {
+            SDL_RWwrite( postac, &name[i], sizeof(char), 1);
+        }
+        SDL_RWwrite( postac, &scena, sizeof(int), 1);
         SDL_RWclose( postac );
     }
     else
@@ -659,7 +673,7 @@ void title()
 
 }
 
-bool intro()
+void intro()
 {
     btt btt1;
     DBtexture door;
@@ -686,7 +700,7 @@ bool intro()
     int a = 255;
     text.loadText("W latach trzydziestych XXI wieku,  odbyło się globalne referendum. W nim obywatele ziemi", tcolor );
     int txtln = text.getWidth();
-    while(txtin < 600 )
+    while(txtin < 840 )
     {
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
@@ -698,7 +712,7 @@ bool intro()
             fintxt += 17;
         }
         
-        if( txtin > 180 )
+        if( txtin > 240 )
         {
             text.fintxt( "Korporacje.", rcolor, SpiochW.getScrnW()/2 - txtln/2, 190, fintxt1 );
             if( fintxt1 < 255 )
@@ -706,7 +720,7 @@ bool intro()
                 fintxt1 += 17;
             }
         }
-        if( txtin > 240 )
+        if( txtin > 480 )
         {
             text.fintxt( "W Europie największe wpływy miała Candle Corporation. Stawiająca na rozwój nie bacząc na", tcolor, SpiochW.getScrnW()/2 - txtln/2, 250, fintxt2 );
             text.fintxt( "jego koszty. Mieszkańcy czuli się swobodnie i żyli dostatnio. Wiedzieli jednak, że najgorsze co", tcolor, SpiochW.getScrnW()/2 - txtln/2, 280, fintxt2 );
@@ -716,7 +730,7 @@ bool intro()
                 fintxt2 += 17;
             }
         }
-        if( txtin > 380 )
+        if( txtin > 600 )
         {
             text.fintxt( "Tak już od kilkunastu lat wszędzie gdzie dzieje się coś ważnego, widnieje znak złotej świecy...", tcolor, SpiochW.getScrnW()/2 - txtln/2, 350, fintxt3 );
             if( fintxt3 < 255 )
@@ -790,10 +804,60 @@ bool intro()
     btt1.endbtt();
     text.fontend();
     text.free();
-    return false;
 }
 
+bool game()
+{
+    bool quit = false;
+    intro();
+    while( !quit )
+    {
+        switch( player.scena )
+        {
+            case 1:
+            {
+                quit = scena1();
+            }
+        }
+    }
+    if( quit )
+    {
+        player.savegame();
+    }
+}
 
+bool scena1()
+{
+    bool quit = false;
+    btt bttq;
+    DBtexture text;
+    SDL_Event e;
+    text.setFont( 20 );
+    bttq.loadbtt( "PNG/btt.png" );
+    while( !quit )
+    {
+        while( SDL_PollEvent( &e ) != 0 )
+        {
+            if(!quit)
+            {
+                quit = bttq.handleEvent( &e );
+                
+            }
+        }
+        SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
+        SDL_RenderClear( SpiochRenderer );
+        text.fintxt( "tekst", tcolor, 50, 50, 255 );
+        text.fintxt( player.name, tcolor, 50, 80, 255 );
+        bttq.setpos( SpiochW.getScrnW()/2 - 50, SpiochW.getScrnH() - 100 );
+        bttq.renderbtt( 255 );
+        SDL_RenderPresent( SpiochRenderer );
+    }
+
+    bttq.endbtt();
+    text.fontend();
+    text.free();
+    return true;
+}
 
 bool menu()
 {
@@ -831,7 +895,7 @@ bool menu()
         }
         if( ng )
         {
-            ng = intro();
+            ng = game();
         }
         SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
         SDL_RenderClear( SpiochRenderer );
@@ -943,10 +1007,7 @@ bool opcje()
     return false;
 }
 
-bool scena()
-{
 
-}
 
 int main( int argc, char* argd[] )
 {
