@@ -106,10 +106,13 @@ public:
 class Postac
 {
 public:
-    char name[10] = "Bin      ";
+    std::string name;
+    size_t namelng;
     bool alive;
     int scena;
     Postac();
+    void newcharacter();
+    void characterdead();
     void savegame();
 };
 
@@ -508,10 +511,9 @@ Postac::Postac()
         if(postac != NULL )
         {
             scena = 1;
-            for(int i = 0; i < 10; i++ )
-            {
-                SDL_RWwrite( postac, &name[i], sizeof(char), 1);
-            }
+            name = "Bin";
+            namelng = name.sizeof();
+            SDL_RWwrite( postac, &name, sizeof(namelng), 1);
             SDL_RWwrite( postac, &scena, sizeof(int), 1);
             SDL_RWclose( postac );
         }
@@ -523,14 +525,23 @@ Postac::Postac()
     else
     {
         printf( "Reading character\n" );
-        for(int i = 0; i < 10; i++ )
-        {
-            SDL_RWread( postac, &name[i], sizeof(char), 1 );
-        }
+        SDL_RWread( postac, &name, sizeof(namelng), 1 );
         SDL_RWread( postac, &scena, sizeof(int), 1 );
         SDL_RWclose( postac );
     }
 
+}
+
+void Postac::newcharacter()
+{
+    alive = true;
+    scena = 1;
+}
+
+void Postac::characterdead()
+{
+    alive = false;
+    scena = 0;
 }
 
 //zapisane danych sesji
@@ -539,10 +550,8 @@ void Postac::savegame()
     SDL_RWops* postac = SDL_RWFromFile("bin/postac.bin", "w+b");
     if( postac != NULL )
     {
-        for(int i = 0; i < 10; i++ )
-        {
-            SDL_RWwrite( postac, &name[i], sizeof(char), 1);
-        }
+        namelng = name.sizeof();
+        SDL_RWwrite( postac, &name, sizeof( namelng ), 1);
         SDL_RWwrite( postac, &scena, sizeof(int), 1);
         SDL_RWclose( postac );
     }
