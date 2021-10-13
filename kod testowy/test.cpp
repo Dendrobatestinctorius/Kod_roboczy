@@ -512,8 +512,8 @@ Postac::Postac()
             scena = 1;
             name = "Bin";
             namelng = name.size();
-            SDL_RWwrite( postac, &namelng, sizeof(int), 1);
-            SDL_RWwrite( postac, &name, sizeof(namelng), 1);
+            SDL_RWwrite( postac, &namelng, sizeof(namelng), 1);
+            SDL_RWwrite( postac, &name[0], name.size(), 1);
             SDL_RWwrite( postac, &scena, sizeof(int), 1);
             SDL_RWclose( postac );
         }
@@ -525,8 +525,9 @@ Postac::Postac()
     else
     {
         printf( "Reading character\n" );
-        SDL_RWread( postac, &namelng, sizeof(int), 1);
-        SDL_RWread( postac, &name, sizeof(namelng), 1 );
+        SDL_RWread( postac, &namelng, sizeof(size_t), 1);
+        name.resize(namelng);
+        SDL_RWread( postac, &name[0], name.size(), 1 );
         SDL_RWread( postac, &scena, sizeof(int), 1 );
         SDL_RWclose( postac );
     }
@@ -552,7 +553,8 @@ void Postac::savegame()
     if( postac != NULL )
     {
         namelng = name.size();
-        SDL_RWwrite( postac, &name, sizeof( namelng ), 1);
+        SDL_RWwrite( postac, &namelng, sizeof(namelng), 1);
+        SDL_RWwrite( postac, &name[0], name.size(), 1);
         SDL_RWwrite( postac, &scena, sizeof(int), 1);
         SDL_RWclose( postac );
     }
@@ -679,6 +681,7 @@ int main( int argc, char* argd[] )
         SDL_Event e;
         DBtexture text;
         text.setFont(40);
+        SDL_StartTextInput();
         while (!end)
         {
             while( SDL_PollEvent( &e ) != 0 )
@@ -687,6 +690,18 @@ int main( int argc, char* argd[] )
                 {
                     end = true;
                 }
+                else if(e.key.keysym.sym == SDLK_BACKSPACE && player.name.length() > 0 )
+                {
+                    player.name.pop_back();
+                }
+                else if( e.type == SDL_TEXTINPUT )
+                {
+                    if( !( SDL_GetModState() & KMOD_LSHIFT & KMOD_CAPS)  )
+                    {
+                        player.name += e.text.text;
+                    }
+                }
+
             }
 
             SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
@@ -695,6 +710,9 @@ int main( int argc, char* argd[] )
             text.fintxt( player.name, tcolor, 10, 10, 255 );
             SDL_RenderPresent( SpiochRenderer );
         }
+        SDL_StopTextInput();
+        text.fontend();
+        text.free();
     } 
     close();
     return 0;
