@@ -681,6 +681,7 @@ int main( int argc, char* argd[] )
         SDL_Event e;
         DBtexture text;
         text.setFont(40);
+        bool textedit = true;
         SDL_StartTextInput();
         while (!end)
         {
@@ -690,15 +691,22 @@ int main( int argc, char* argd[] )
                 {
                     end = true;
                 }
-                else if(e.key.keysym.sym == SDLK_BACKSPACE && player.name.length() > 0 )
+                if( textedit || player.name.size() <= 15 )
                 {
-                    player.name.pop_back();
-                }
-                else if( e.type == SDL_TEXTINPUT )
-                {
-                    if( !( SDL_GetModState() & KMOD_LSHIFT & KMOD_CAPS)  )
+                    if( e.key.keysym.sym == SDLK_BACKSPACE && player.name.length() > 0 )
                     {
-                        player.name += e.text.text;
+                        player.name.pop_back();
+                    }
+                    else if( e.type == SDL_TEXTINPUT )
+                    {
+                        if( !( SDL_GetModState() & KMOD_LSHIFT & KMOD_CAPS & KMOD_RALT )  )
+                        {
+                            player.name += e.text.text;
+                        }
+                    }
+                    else if( e.key.keysym.sym == SDLK_RETURN )
+                    {
+                        textedit = false;
                     }
                 }
 
