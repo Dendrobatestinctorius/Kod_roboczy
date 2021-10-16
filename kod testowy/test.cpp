@@ -680,6 +680,8 @@ int main( int argc, char* argd[] )
     {
         SDL_Event e;
         DBtexture text;
+        DBtexture intxt;
+        intxt.LFF("png/txtin.png");
         text.setFont(40);
         bool textedit = true;
         SDL_StartTextInput();
@@ -691,7 +693,7 @@ int main( int argc, char* argd[] )
                 {
                     end = true;
                 }
-                if( textedit || player.name.size() <= 15 )
+                if( textedit )
                 {
                     if( e.key.keysym.sym == SDLK_BACKSPACE && player.name.length() > 0 )
                     {
@@ -701,7 +703,10 @@ int main( int argc, char* argd[] )
                     {
                         if( !( SDL_GetModState() & KMOD_LSHIFT & KMOD_CAPS & KMOD_RALT )  )
                         {
-                            player.name += e.text.text;
+                            if( player.name.size() <= 15)
+                            {
+                                player.name += e.text.text;
+                            }
                         }
                     }
                     else if( e.key.keysym.sym == SDLK_RETURN )
@@ -715,6 +720,10 @@ int main( int argc, char* argd[] )
             SDL_SetRenderDrawColor( SpiochRenderer, 214, 192, 143, 255 );
             SDL_RenderClear( SpiochRenderer );
             text.fintxt( "wersja spiocha do testowania modyfikacji", tcolor, SpiochW.getScrnW()/2 - SpiochW.getScrnW()/4, SpiochW.getScrnH()/2, 255 );
+            if( textedit )
+            {
+                intxt.render(10, 10);
+            }
             text.fintxt( player.name, tcolor, 10, 10, 255 );
             SDL_RenderPresent( SpiochRenderer );
         }
