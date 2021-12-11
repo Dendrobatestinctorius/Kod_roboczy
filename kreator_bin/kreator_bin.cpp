@@ -6,8 +6,9 @@
 #include <cstdlib>
 #include <string>
 #include <array>
+#include <vector>
 
-usung namespace std;
+using namespace std;
 
 void nowy_plik();
 void odczyt_plik();
@@ -30,7 +31,7 @@ int main( int argc, char* argd[] )
             case 2:
                 odczyt_plik();
             case 0:
-                exit = true
+                exit = true;
                 break;
         }
     }
@@ -52,8 +53,9 @@ void nowy_plik()
         cout << "Plik " << fname << " utworzony" << endl;
         cout << "Podaj liczbę wierszy do zapisu: " << endl;
         cin >> ln;
-        new array<string, ln> lnarr;
-        SDK_RWwrite( nfile, ln, sizeof( int ), 1 );
+        const size_t lns = ln;
+        vector<string, lns> *lnarr = new vector<string, lns>;
+        SDL_RWwrite( nfile, &ln, sizeof( int ), 1 );
         for(int a = 0; a <= ln; a++)
         {
             cout << "Wprowadz wiersz:" << endl;
