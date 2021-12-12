@@ -28,8 +28,10 @@ int main( int argc, char* argd[] )
         {
             case 1:
                 nowy_plik();
+                break;
             case 2:
                 odczyt_plik();
+                break;
             case 0:
                 exit = true;
                 break;
@@ -50,26 +52,31 @@ void nowy_plik()
     SDL_RWops* nfile = SDL_RWFromFile( fname.c_str() , "w+b" );
     if( !nfile )
     {
+        cout<< "Nie udało sie utworzyc pliku" << endl;
+    }
+    else
+    {
         cout << "Plik " << fname << " utworzony" << endl;
         cout << "Podaj liczbę wierszy do zapisu: " << endl;
         cin >> ln;
-        const size_t lns = ln;
-        vector<string, lns> *lnarr = new vector<string, lns>;
+        string lne;
+        vector<string> lnarr;
         SDL_RWwrite( nfile, &ln, sizeof( int ), 1 );
         for(int a = 0; a <= ln; a++)
         {
             cout << "Wprowadz wiersz:" << endl;
-            cin >> lnarr[a];
+            getline( cin, lne);
+            lnarr.push_back( lne );
+            
+        }
+        for( int a = 0; a <= ln; a++ )
+        {
             lnlng = lnarr[a].size();
             SDL_RWwrite( nfile, &lnlng, sizeof( size_t ), 1 );
             SDL_RWwrite( nfile, &lnarr[a][0], lnarr[a].size(), 1 );
         }
         SDL_RWclose( nfile );
-        delete lnarr;
-    }
-    else
-    {
-        cout << "Plik już istnieje, usuń go przed kontynuacją." << endl;
+    
     }
 
 
@@ -91,7 +98,8 @@ void odczyt_plik()
         int ln;
         size_t lnlng;
         SDL_RWread( nfile, &ln, sizeof( int ), 1 );
-        new array<string, ln> lnarr;
+        vector<string> lnarr;
+        lnarr.resize( ln );
         for( int a = 0; a <= ln; a++ )
         {
             SDL_RWread( nfile, &lnlng, sizeof( size_t ), 1 );
@@ -103,6 +111,6 @@ void odczyt_plik()
         {
             cout << lnarr[a] << endl;
         }
-        delete lnarr;
+        
     }
 }
