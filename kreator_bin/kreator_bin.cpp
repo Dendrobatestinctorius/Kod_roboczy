@@ -5,7 +5,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
-#include <array>
 #include <vector>
 
 using namespace std;
@@ -60,20 +59,14 @@ void nowy_plik()
         cout << "Podaj liczbę wierszy do zapisu: " << endl;
         cin >> ln;
         string lne;
-        vector<string> lnarr;
         SDL_RWwrite( nfile, &ln, sizeof( int ), 1 );
-        for(int a = 0; a <= ln; a++)
+        for(int a = 0; a < ln; a++)
         {
             cout << "Wprowadz wiersz:" << endl;
             getline( cin, lne);
-            lnarr.push_back( lne );
-            
-        }
-        for( int a = 0; a <= ln; a++ )
-        {
-            lnlng = lnarr[a].size();
+            lnlng = lne.size();
             SDL_RWwrite( nfile, &lnlng, sizeof( size_t ), 1 );
-            SDL_RWwrite( nfile, &lnarr[a][0], lnarr[a].size(), 1 );
+            SDL_RWwrite( nfile, &lne, lne.size(), 1 );
         }
         SDL_RWclose( nfile );
     
@@ -97,17 +90,18 @@ void odczyt_plik()
         cout << "Odczyt " << fname << endl;
         int ln;
         size_t lnlng;
-        SDL_RWread( nfile, &ln, sizeof( int ), 1 );
+        string lne;
         vector<string> lnarr;
-        lnarr.resize( ln );
-        for( int a = 0; a <= ln; a++ )
+        SDL_RWread( nfile, &ln, sizeof( int ), 1 );  
+        for( int a = 0; a < ln; a++ )
         {
             SDL_RWread( nfile, &lnlng, sizeof( size_t ), 1 );
-            lnarr[a].resize( lnlng );
-            SDL_RWread( nfile, &lnarr[a][0], lnarr[a].size(), 1 );
+            lne.resize( lnlng );
+            SDL_RWread( nfile, &lne[0], lne.size(), 1 );
+            lnarr.pushback( lne );
         }
         SDL_RWclose( nfile );
-        for( int a = 0; a <= 0; a++ )
+        for( int a = 0; a < ln; a++ )
         {
             cout << lnarr[a] << endl;
         }
