@@ -1,35 +1,33 @@
-#include <SDL2/SDL.h>
-//#include <SDL2/SDL_image.h>
-//#include <SDL2/SDL_ttf.h>
-//#include <SDL2/SDL_mixer.h>
+///#include <SDL2/SDL.h>
 #include <iostream>
 #include <cstdlib>
+#include <fstream>
 #include <string>
 #include <vector>
 
 using namespace std;
 
-void nowy_plik();
-void odczyt_plik();
+
+bool odczyt_plik();
 
 
 int main( int argc, char* argd[] )
 {
-    cout << "Spioch rozdział 1. Program CLI do tworzenia pliku bin sceny" << endl;
+    cout << "Spioch rozdział 1. Program CLI do kontroli pliku s sceny" << endl;
     cout << "Dendrobates Studio, Adam Machowski\n" << endl;
     bool exit = false;
     int menu;
     while(!exit)
     {
-        cout << "utwórz plik[1], odczytaj plik[2], Zakończ program[0]" << endl;
+        cout << "odczyt pliku[1], Zakończ program[0]" << endl;
         cin >> menu;
         switch( menu )
         {
             case 1:
-                nowy_plik();
-                break;
-            case 2:
-                odczyt_plik();
+                if( !odczyt_plik() );
+                {
+                    cout << "Błąd odczytu pliku!!"
+                }
                 break;
             case 0:
                 exit = true;
@@ -40,71 +38,37 @@ int main( int argc, char* argd[] )
 }
 
 
-
-void nowy_plik()
-{
-    int ln;
-    size_t lnlng;
-    string fname;
-    cout << "Wprowadz nazwę pliku: " << endl;
-    cin >> fname;
-    SDL_RWops* nfile = SDL_RWFromFile( fname.c_str() , "w+b" );
-    if( !nfile )
-    {
-        cout<< "Nie udało sie utworzyc pliku" << endl;
-    }
-    else
-    {
-        cout << "Plik " << fname << " utworzony" << endl;
-        cout << "Podaj liczbę wierszy do zapisu: " << endl;
-        cin >> ln;
-        string lne;
-        SDL_RWwrite( nfile, &ln, sizeof( int ), 1 );
-        for(int a = 0; a < ln; a++)
-        {
-            cout << "Wprowadz wiersz:" << endl;
-            getline( cin, lne);
-            lnlng = lne.size();
-            SDL_RWwrite( nfile, &lnlng, sizeof( size_t ), 1 );
-            SDL_RWwrite( nfile, &lne, lne.size(), 1 );
-        }
-        SDL_RWclose( nfile );
-    
-    }
-
-
-}
-
 void odczyt_plik()
 {
     string fname;
-    cout << "Podaj nazwę pliku do odczytania: " << endl;
+    int lnr;
+    cout << "Podaj nazwę pliku do odczytania: ";
     cin >> fname;
-    SDL_RWops* nfile = SDL_RWFromFile( fname.c_str() , "r+b");
-    if( !nfile )
+    ifstream plik;
+    plik.open( fname.cstr() )
+    if( !plik.good() )
     {
-        cout << "Nie ma takiego pliku!" << endl;
+        return false;
     }    
     else
     {
+        int ln = 0;
+        int a = 0;
+        cout << "Podaj liczbę wierszy do odcztu: ";
+        cin >> lnr;
         cout << "Odczyt " << fname << endl;
-        int ln;
-        size_t lnlng;
-        string lne;
         vector<string> lnarr;
-        SDL_RWread( nfile, &ln, sizeof( int ), 1 );  
-        for( int a = 0; a < ln; a++ )
+        lnarr.push_back( lnr );
+        while( ln < lnr )
         {
-            SDL_RWread( nfile, &lnlng, sizeof( size_t ), 1 );
-            lne.resize( lnlng );
-            SDL_RWread( nfile, &lne[0], lne.size(), 1 );
-            lnarr.pushback( lne );
+            getline( plik, lnarr[ln] );
+            ln++;
         }
-        SDL_RWclose( nfile );
-        for( int a = 0; a < ln; a++ )
+        plik.close();
+        for( int a = 0; a < lnr; a++ )
         {
             cout << lnarr[a] << endl;
         }
-        
+        return true;        
     }
 }
