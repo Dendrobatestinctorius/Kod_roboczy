@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
+//#include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <string>
 
@@ -15,13 +15,13 @@ public:
     ~DBtexture();
     void setFont(int size);
     void fontend();
-    bool LFF( std::string path);
-    bool loadText( std::string textureText, SDL_Color textColor );
+    bool LFF( std::string path, SDL_Renderer &SpiochRenderer);
+    bool loadText( std::string textureText, SDL_Color textColor, SDL_Renderer &SpiochRenderer );
     void free();
     void setColor( Uint8 red, Uint8 green, Uint8 blue);
     void setBlendMode( SDL_BlendMode blending );
     void setAplha( Uint8 alpha );
-    void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
+    void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE, SDL_Renderer &SpiochRenderer );
     void fintxt( std::string textureText, SDL_Color textColor, int x, int y, Uint8 alpha);
     int getWidth();
     int getHeight();
@@ -56,13 +56,6 @@ public:
     bool resfhd;
 };
 
-class Renderer
-{
-public:
-    SDL_Renderer* SpiochRenderer = NULL;
-};
-
-
 
 
 //konstruktor tekstury
@@ -80,7 +73,7 @@ DBtexture::~DBtexture()
 }
 
 //Ładowanie tektury do pamięci
-bool DBtexture::LFF( std::string path)
+bool DBtexture::LFF( std::string path, SDL_Renderer &SpiochRenderer)
 {
     free();
     SDL_Texture* newTexture = NULL;
@@ -118,7 +111,7 @@ void DBtexture::fontend()
 }
 
 //Ładowanie zmiennej string do tektury
-bool DBtexture::loadText( std::string textureText, SDL_Color textColor )
+bool DBtexture::loadText( std::string textureText, SDL_Color textColor , SDL_Renderer &SpiochRenderer)
 {
 	free();
     SDL_Surface* textSurface = TTF_RenderUTF8_Solid( DBfont, textureText.c_str() , textColor );
@@ -172,7 +165,7 @@ void DBtexture::setAplha( Uint8 alpha )
 }
 
 //wyświetlenie tekstury do aktualnego renderer
-void DBtexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip)
+void DBtexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip, SDL_Renderer &SpiochRenderer)
 {
     SDL_Rect RendererQ = {x, y, mWidth, mHeight};
     if( clip != NULL )

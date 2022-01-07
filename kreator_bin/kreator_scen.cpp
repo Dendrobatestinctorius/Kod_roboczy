@@ -38,14 +38,14 @@ int main( int argc, char* argd[] )
 }
 
 
-void odczyt_plik()
+bool odczyt_plik()
 {
     string fname;
     int lnr;
     cout << "Podaj nazwę pliku do odczytania: ";
     cin >> fname;
     ifstream plik;
-    plik.open( fname.cstr() )
+    plik.open( fname.cstr() );
     if( !plik.good() )
     {
         return false;

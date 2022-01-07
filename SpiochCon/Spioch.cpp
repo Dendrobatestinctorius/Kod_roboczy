@@ -4,9 +4,9 @@
 #include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <string>
-#include "graphic.h"
-#include "sound.h"
-#include "postac.h"
+#include "lib/graphic.hpp"
+#include "lib/sound.hpp"
+#include "lib/postac.hpp"
 
 
 enum buttonsprite
@@ -52,7 +52,7 @@ private:
 
 
 //zmienne globalne
-SDL_Renderer* SpiochRenderer = NULL;
+SDL_Renderer* SpiochR = NULL;
 Window SpiochW;
 Postac player;
 
@@ -137,13 +137,13 @@ void btt::renderbtt( Uint8 alpha )
 {
     exitspritesheet.setBlendMode( SDL_BLENDMODE_BLEND );
     exitspritesheet.setAplha( alpha );
-    exitspritesheet.render( ePos.x, ePos.y, &bexitclip[exitcurrentsprite] );
+    exitspritesheet.render( ePos.x, ePos.y, &bexitclip[exitcurrentsprite], SpiochR );
 }
 
 //Załadowanie tekstury przycisku i podzielenie sprite
 void btt::loadbtt( std::string path )
 {
-    if(!exitspritesheet.LFF( path ) )
+    if(!exitspritesheet.LFF( path, SpiochR ) )
     {
         printf( "Failed to load exit button texture\n" );
     }
@@ -188,8 +188,8 @@ bool init()
         }
         else
         {
-            SpiochRenderer = SpiochW.createRenderer();
-            if(SpiochRenderer == NULL )
+            SpiochR = SpiochW.createRenderer();
+            if(SpiochR == NULL )
             {
                 printf( "Renderer could not be created! SDL Error %s\n", SDL_GetError() );
                 success = false;
@@ -225,9 +225,9 @@ void close()
 {
     SpiochW.savesettings();
     player.savegame();
-    SDL_DestroyRenderer( SpiochRenderer );
+    SDL_DestroyRenderer( SpiochR );
     SpiochW.free();
-    SpiochRenderer = NULL;
+    SpiochR = NULL;
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
@@ -242,10 +242,10 @@ void title()
     int i = 0;
     while ( i <= 150 )
     {
-        SDL_SetRenderDrawColor( SpiochRenderer, 214, 193, 143, 255 );
-        SDL_RenderClear( SpiochRenderer );
-        intro.render( SpiochW.getScrnW()/2 - intro.getWidth()/2 , SpiochW.getScrnH()/2 - intro.getHeight()/2 );
-        SDL_RenderPresent( SpiochRenderer );
+        SDL_SetRenderDrawColor( SpiochR, 214, 193, 143, 255 );
+        SDL_RenderClear( SpiochR );
+        intro.render( SpiochW.getScrnW()/2 - intro.getWidth()/2 , SpiochW.getScrnH()/2 - intro.getHeight()/2, SpiochR );
+        SDL_RenderPresent( SpiochR );
         ++i;
     }
 
@@ -258,7 +258,7 @@ void intro()
     btt btt1;
     DBtexture door;
     btt1.loadbtt( "PNG/Candle_btt.png" );
-    door.LFF( "PNG/door.png" );
+    door.LFF( "PNG/door.png", SpiochR );
     DBtexture text;
     text.setFont( 20 );
     SDL_Rect doorclip[2];
